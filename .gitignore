@@ -1,0 +1,7 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+local_db.json
+backend/data/
+.DS_Store

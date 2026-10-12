@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Guuh Barbeiro - Experiência Premium</title>
+  
+  <!-- PWA & Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0d0e12" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/svg+xml" href="/public/icon.svg" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <!-- Google Identity Services (Login Oficial com Google) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/custom.css" />
+</head>
+<body class="bg-[#0d0e12] text-slate-100 flex flex-col items-center select-none overflow-x-hidden auth-mode">
+
+  <!-- ============================================== -->
+  <!-- 1. SPLASH SCREEN FLUIDA (~3 SEGUNDOS)          -->
+  <!-- ============================================== -->
+  <div id="splash-screen" class="fixed inset-0 z-50 bg-[#0d0e12] flex flex-col items-center justify-center transition-all duration-700 ease-out h-[100dvh] max-h-[100dvh] overflow-hidden select-none">
+    <div class="flex flex-col items-center text-center px-4">
+      <!-- Logo Oficial com Glow e Pulso -->
+      <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-[#e5a769]/30 via-zinc-900 to-[#cf853c]/40 border border-[#e5a769]/40 shadow-2xl mb-2.5 relative overflow-hidden splash-pulse">
+        <img src="/barbearia_logo.jpg" alt="Guuh Barbeiro" class="w-full h-full object-cover rounded-full" />
+      </div>
+      <!-- Título da Logo -->
+      <h1 class="text-xs font-extrabold tracking-wider text-white uppercase">GUUH BARBEIRO</h1>
+      <p class="text-[9px] text-zinc-400 font-medium tracking-wide mt-0.5">ESTILO • CONFIANÇA • ATITUDE</p>
+      
+      <!-- Linha Fina de Carregamento Âmbar -->
+      <div class="w-24 h-[2px] bg-zinc-800 rounded-full mt-4 overflow-hidden">
+        <div class="splash-progress-bar h-full bg-[#e5a769] rounded-full"></div>
+      </div>
+    </div>
+    
+    <!-- Assinatura Pivert -->
+    <div class="absolute bottom-5 text-[9px] text-zinc-500 tracking-widest font-semibold uppercase">
+      PIVERT BARBER SYSTEM
+    </div>
+  </div>
+
+  <!-- CONTAINER MOBILE SHELL -->
+  <div id="app-container" class="w-full max-w-md min-h-screen flex flex-col relative">
+
+    <!-- ============================================== -->
+    <!-- TELA 1: LOGIN LUXO (ESTILO POP-UP MAIS FINO)   -->
+    <!-- ============================================== -->
+    <section id="view-login" class="hidden h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col justify-center px-5 py-3 fade-soft relative">
+      <!-- Background escuro com grid sutil igual à imagem de referência -->
+      <div class="absolute inset-0 -z-10 login-bg-pattern pointer-events-none"></div>
+
+      <!-- Bloco Centralizado: Cabeçalho mais baixo e próximo do Pop-up -->
+      <div class="w-[88%] max-w-[332px] mx-auto my-auto space-y-3">
+        <!-- Topo: Marca e Saudação (Próximo ao pop-up conforme solicitado) -->
+        <div class="space-y-1.5 pl-0.5">
+          <div class="flex items-center space-x-2">
+            <img src="/barbearia_logo.jpg" class="w-6 h-6 rounded-full object-cover border border-[#e5a769]/40" />
+            <span class="text-[11px] font-bold tracking-wider text-white uppercase">GUUH BARBEIRO</span>
+          </div>
+
+          <!-- Banner com a barra vertical âmbar -->
+          <div class="border-l-2 border-[#e5a769] pl-2.5 py-0.5">
+            <h2 id="login-hero-title" class="text-base font-bold text-white leading-tight">Bem-vindo</h2>
+            <p class="text-[11px] text-zinc-400">Cuidado e estilo premium para o seu visual.</p>
+          </div>
+        </div>
+
+        <!-- Pop-up Flutuante de Login -->
+        <div class="login-popup-card w-full px-6 py-5 space-y-3 relative shrink-0">
+          <!-- Badge com a Logo da Barbearia -->
+          <div class="flex flex-col items-center text-center">
+            <div class="w-11 h-11 rounded-2xl bg-[#181a20] border border-[#e5a769]/30 flex items-center justify-center p-0.5 mb-1.5 shadow-lg">
+              <img src="/barbearia_logo.jpg" class="w-full h-full object-cover rounded-xl" />
+            </div>
+            <h3 id="auth-title" class="text-lg font-extrabold text-white tracking-tight leading-tight">Login</h3>
+            <p id="auth-subtitle" class="text-[11px] text-zinc-400 mt-0.5">Acesse sua conta para continuar</p>
+          </div>
+
+          <!-- Alerta de Erro / Feedback de Login -->
+          <div id="auth-error-msg" class="hidden px-3 py-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-[10px] font-medium text-center"></div>
+
+          <!-- Formulário -->
+          <div class="space-y-2 text-xs">
+            <!-- Campo Nome (visível apenas no cadastro) -->
+            <div id="auth-field-name" class="hidden space-y-0.5">
+              <label class="block text-[10px] font-medium text-zinc-300">Nome Completo</label>
+              <div class="relative">
+                <i class="fa-regular fa-user absolute left-3 top-2.5 text-zinc-500 text-[11px]"></i>
+                <input type="text" id="input-auth-name" placeholder="Seu nome e sobrenome" class="w-full lux-input pl-8 pr-3 py-1.5 text-xs text-white" />
+              </div>
+            </div>
+
+            <!-- Campo WhatsApp/Telefone (visível apenas no cadastro) -->
+            <div id="auth-field-phone" class="hidden space-y-0.5">
+              <label class="block text-[10px] font-medium text-zinc-300">Celular / WhatsApp</label>
+              <div class="relative">
+                <i class="fa-solid fa-phone absolute left-3 top-2.5 text-zinc-500 text-[11px]"></i>
+                <input type="tel" id="input-auth-phone" placeholder="(11) 99999-9999" class="w-full lux-input pl-8 pr-3 py-1.5 text-xs text-white" />
+              </div>
+            </div>
+
+            <!-- Campo E-mail -->
+            <div class="space-y-0.5">
+              <label class="block text-[10px] font-medium text-zinc-300">E-mail</label>
+              <div class="relative">
+                <i class="fa-regular fa-envelope absolute left-3 top-2.5 text-zinc-500 text-[11px]"></i>
+                <input type="email" id="input-auth-login" placeholder="seuemail@exemplo.com" class="w-full lux-input pl-8 pr-3 py-2 text-xs text-white" />
+              </div>
+            </div>
+
+            <!-- Campo Senha -->
+            <div class="space-y-0.5">
+              <div class="flex items-center justify-between">
+                <label class="text-[10px] font-medium text-zinc-300">Senha</label>
+                <a href="#" onclick="fillQuickDemo('admin'); return false;" class="text-[9px] text-[#e5a769] hover:underline" title="Preencher acesso Admin">Acesso Admin</a>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-lock absolute left-3 top-2.5 text-zinc-500 text-[11px]"></i>
+                <input type="password" id="input-auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleAuthSubmit()" class="w-full lux-input pl-8 pr-8 py-2 text-xs text-white" />
+                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-2.5 text-zinc-500 hover:text-zinc-300">
+                  <i id="eye-icon" class="fa-regular fa-eye text-[11px]"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Botão de Login Âmbar Luxuoso -->
+            <button id="btn-auth-action" onclick="handleAuthSubmit()" class="w-full py-2.5 btn-lux-primary text-xs font-bold flex items-center justify-center space-x-1.5 mt-1">
+              <span id="btn-auth-text">Entrar</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+
+          <!-- Divisor ou continue com -->
+          <div class="relative flex items-center justify-center py-0.5">
+            <div class="border-t border-white/[0.08] w-full"></div>
+            <span class="bg-[#111317] px-2.5 text-[9px] text-zinc-500 absolute uppercase tracking-wider font-semibold">ou continue com</span>
+          </div>
+
+          <!-- Apenas Google -->
+          <div>
+            <button onclick="handleGoogleMockLogin()" class="w-full py-2 px-3 rounded-xl bg-[#181a20] hover:bg-[#1e2028] border border-white/[0.08] hover:border-[#e5a769]/40 flex items-center justify-center space-x-2 transition">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span class="text-[11px] font-semibold text-zinc-200">Continuar com Google</span>
+            </button>
+          </div>
+
+          <!-- Alternador Cadastrar / Entrar -->
+          <div class="text-center text-[10px] text-zinc-400">
+            <span id="auth-switch-msg">Não tem uma conta?</span>
+            <button id="auth-switch-btn" onclick="toggleAuthMode()" class="text-[#e5a769] font-bold hover:underline ml-1">
+              Cadastre-se
+            </button>
+          </div>
+
+          <!-- Selo de Segurança dentro do pop-up -->
+          <div class="text-center text-[9px] text-zinc-500 flex items-center justify-center space-x-1.5 pt-1.5 border-t border-white/[0.05]">
+            <i class="fa-solid fa-shield-halved text-emerald-400 text-[10px]"></i>
+            <span>Seus dados estão protegidos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 2: HOME DO CLIENTE                        -->
+    <!-- ============================================== -->
+    <section id="view-home" class="hidden fade-soft px-4 py-3 space-y-4 pb-24">
+      <!-- Top Header -->
+      <div class="flex items-center justify-between pt-1">
+        <!-- Ícone Menu Sobre -->
+        <button onclick="switchTab('about')" class="w-9 h-9 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white">
+          <i class="fa-solid fa-shapes text-xs"></i>
+        </button>
+
+        <div class="flex items-center space-x-2">
+          <!-- Botão Rápido Admin (Visível se for admin) -->
+          <button id="btn-header-admin" onclick="switchTab('admin')" class="hidden px-2.5 h-9 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/40 text-[#e5a769] text-[10px] font-bold items-center space-x-1">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Admin</span>
+          </button>
+          <!-- Atalho Meus Horários -->
+          <button onclick="switchTab('my-bookings')" class="w-9 h-9 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white relative">
+            <i class="fa-regular fa-bell text-xs"></i>
+            <span class="w-2 h-2 rounded-full bg-[#e5a769] absolute top-2 right-2"></span>
+          </button>
+          <!-- Avatar Usuário no Estilo Silhueta Circular -->
+          <button onclick="switchTab('profile')" class="w-9 h-9 rounded-full overflow-hidden border border-white/15 hover:border-[#e5a769] transition shadow-md shrink-0">
+            <img id="header-user-avatar" src="/user_avatar.svg" alt="Perfil" class="w-full h-full object-cover" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Saudação Personalizada -->
+      <div class="space-y-0.5">
+        <span id="home-greeting-time" class="text-xs text-zinc-400 font-medium">Bom dia,</span>
+        <h2 id="home-client-name" class="text-xl font-bold text-white tracking-tight">Cliente</h2>
+      </div>
+
+      <!-- Barra de Pesquisa Rápida -->
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-zinc-500 text-xs"></i>
+        <input type="text" id="search-services-input" onkeydown="if(event.key==='Enter') openQuickBookingWithSearch(this.value)" placeholder="Buscar corte, barba, relaxamento..." class="w-full lux-input py-2 pl-3.5 pr-9 text-xs text-white placeholder-zinc-500" />
+      </div>
+
+      <!-- Banner Promocional / Destaque Especial -->
+      <div class="lux-card-elevated p-4 relative overflow-hidden flex items-center justify-between border-[#e5a769]/20 bg-gradient-to-r from-[#181a22] to-[#201d1a]">
+        <div class="space-y-1.5 z-10 max-w-[62%]">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#e5a769]">Destaque da Semana</span>
+          <h3 class="text-sm font-extrabold text-white leading-snug">Corte Degradê + Barba Terapia</h3>
+          <p class="text-[10px] text-zinc-400">Escolha um ou mais serviços e monte seu combo na hora</p>
+          <button onclick="openBookingWithCategory('Combo')" class="mt-1 py-1.5 px-3.5 rounded-lg btn-lux-primary text-[10px] font-bold">
+            Agendar Agora
+          </button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80" class="w-24 h-24 rounded-2xl object-cover border border-white/[0.08] shadow-xl shrink-0" />
+      </div>
+
+      <!-- Categorias em Ícones Arredondados -->
+      <div class="grid grid-cols-4 gap-2">
+        <button onclick="openBookingWithCategory('Cabelo')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#16171e] border border-white/[0.06] hover:border-[#e5a769]/40 transition group">
+          <div class="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center text-[#e5a769] text-sm group-hover:scale-110 transition">
+            <i class="fa-solid fa-scissors"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-zinc-300 mt-1.5">Corte</span>
+        </button>
+
+        <button onclick="openBookingWithCategory('Barba')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#16171e] border border-white/[0.06] hover:border-[#e5a769]/40 transition group">
+          <div class="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center text-[#e5a769] text-sm group-hover:scale-110 transition">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-zinc-300 mt-1.5">Barba</span>
+        </button>
+
+        <button onclick="openBookingWithCategory('Química')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#16171e] border border-white/[0.06] hover:border-[#e5a769]/40 transition group">
+          <div class="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center text-[#e5a769] text-sm group-hover:scale-110 transition">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-zinc-300 mt-1.5">Química</span>
+        </button>
+
+        <button onclick="openBookingWithCategory('Pintura')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#16171e] border border-white/[0.06] hover:border-[#e5a769]/40 transition group">
+          <div class="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center text-[#e5a769] text-sm group-hover:scale-110 transition">
+            <i class="fa-solid fa-paintbrush"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-zinc-300 mt-1.5">Pintura</span>
+        </button>
+      </div>
+
+      <!-- Nossos Barbeiros (Vinculado ao Painel do Administrador) -->
+      <div class="space-y-2 pt-1">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold text-white uppercase tracking-wider">Nossos Barbeiros</h4>
+          <span class="text-[10px] text-[#e5a769] font-medium">Profissionais</span>
+        </div>
+
+        <div id="home-barbers-list" class="space-y-2">
+          <!-- Renderizado via JS (Padrão: Ricardo) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 3: AGENDAMENTO DETALHE (MULTI-SERVIÇOS)   -->
+    <!-- ============================================== -->
+    <section id="view-booking" class="hidden fade-soft space-y-3.5 pb-28">
+      <!-- Imagem de Destaque do Serviço com Botão de Voltar Sobreposto -->
+      <div class="relative h-44 w-full rounded-b-3xl overflow-hidden border-b border-white/[0.08]">
+        <img id="detail-service-img" src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop&q=80" class="w-full h-full object-cover transition-all duration-300" />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-[#0d0e12]/30 to-black/60"></div>
+        
+        <!-- Botão Voltar -->
+        <button onclick="switchTab('home')" class="absolute top-3.5 left-4 w-8 h-8 rounded-xl bg-black/60 backdrop-blur-md border border-white/[0.12] text-white flex items-center justify-center hover:border-[#e5a769]">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+
+        <!-- Contador de Serviços Selecionados no Topo Direito -->
+        <div id="detail-selected-count-badge" class="absolute top-3.5 right-4 px-2.5 py-1 rounded-xl bg-black/70 backdrop-blur-md border border-[#e5a769]/40 text-[#e5a769] text-[10px] font-bold">
+          1 serviço selecionado
+        </div>
+
+        <!-- Informação do Serviço no Banner -->
+        <div class="absolute bottom-3 left-4 right-4">
+          <h2 id="detail-service-title" class="text-base font-black text-white leading-tight">Corte Degradê / Social</h2>
+          <p id="detail-service-subtitle" class="text-[11px] text-[#e5a769] font-medium mt-0.5">Profissional: Ricardo • 35 min</p>
+        </div>
+      </div>
+
+      <div class="px-4 space-y-3.5">
+        <!-- 1. SELETOR DE SERVIÇOS (ARRASTAR E ESCOLHER MAIS DE UM) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-white">Escolha ou Adicione Serviços</h4>
+              <p class="text-[10px] text-zinc-400">Arraste para o lado • Pode marcar vários</p>
+            </div>
+            <div class="flex items-center space-x-1">
+              <button type="button" onclick="scrollServicesCarousel(-160)" class="w-6 h-6 rounded-lg bg-[#16171e] border border-white/[0.08] text-zinc-300 hover:text-[#e5a769] flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <button type="button" onclick="scrollServicesCarousel(160)" class="w-6 h-6 rounded-lg bg-[#16171e] border border-white/[0.08] text-zinc-300 hover:text-[#e5a769] flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Carrossel Horizontal de Serviços com Multi-Seleção -->
+          <div id="booking-services-carousel" class="flex space-x-2.5 overflow-x-auto pb-1.5 pt-0.5 scroll-smooth">
+            <!-- Gerado via JS -->
+          </div>
+
+          <!-- Resumo dos Serviços Selecionados (Pílulas removíveis + Tempo total) -->
+          <div id="selected-services-summary" class="lux-card-elevated p-2.5 space-y-1.5">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+
+        <!-- 2. ESCOLHA O BARBEIRO -->
+        <div class="space-y-1.5">
+          <h4 class="text-xs font-bold text-white">Profissional</h4>
+          <div id="booking-barbers-row" class="space-y-2">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+
+        <!-- 3. ESCOLHA O DIA (COM CALENDARIOZINHO INTERATIVO) -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-white">Escolha o Dia</h4>
+
+          <!-- Botão que abre/fecha o Calendariozinho -->
+          <button type="button" onclick="toggleMiniCalendar()" class="w-full lux-card-elevated p-3 flex items-center justify-between hover:border-[#e5a769]/50 transition">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 flex items-center justify-center text-[#e5a769]">
+                <i class="fa-regular fa-calendar-days text-xs"></i>
+              </div>
+              <div class="text-left">
+                <span class="text-[10px] text-zinc-400 block leading-tight">Data do Agendamento</span>
+                <span id="calendar-selected-date-text" class="text-xs font-bold text-white">Selecionar data...</span>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1.5 bg-[#16171e] px-2.5 py-1.5 rounded-xl border border-white/[0.08] text-[#e5a769] text-[10px] font-bold">
+              <span id="calendar-toggle-label">Calendário</span>
+              <i id="calendar-toggle-icon" class="fa-solid fa-chevron-down text-[9px] transition-transform"></i>
+            </div>
+          </button>
+
+          <!-- Calendariozinho Mensal Expansível -->
+          <div id="mini-calendar-box" class="hidden lux-card p-3.5 space-y-2.5 border border-[#e5a769]/30 fade-soft">
+            <div class="flex items-center justify-between pb-1 border-b border-white/[0.08]">
+              <button type="button" onclick="changeCalendarMonth(-1)" class="w-7 h-7 rounded-lg bg-[#16171e] border border-white/[0.08] text-zinc-300 hover:text-white flex items-center justify-center text-xs">
+                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+              </button>
+              <span id="mini-calendar-month-label" class="text-xs font-bold text-white uppercase tracking-wider">Outubro 2026</span>
+              <button type="button" onclick="changeCalendarMonth(1)" class="w-7 h-7 rounded-lg bg-[#16171e] border border-white/[0.08] text-zinc-300 hover:text-white flex items-center justify-center text-xs">
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <!-- Cabeçalho Dias da Semana -->
+            <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-zinc-500 uppercase">
+              <span>Dom</span>
+              <span>Seg</span>
+              <span>Ter</span>
+              <span>Qua</span>
+              <span>Qui</span>
+              <span>Sex</span>
+              <span>Sáb</span>
+            </div>
+
+            <!-- Grade de Dias do Mês -->
+            <div id="mini-calendar-days-grid" class="grid grid-cols-7 gap-1 text-center">
+              <!-- Gerado via JS -->
+            </div>
+          </div>
+
+          <!-- 4. HORÁRIOS LIVRES -->
+          <div class="pt-1 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Escolha o Horário</span>
+              <span id="detail-selected-date-label" class="text-[10px] text-[#e5a769] font-semibold">Hoje</span>
+            </div>
+            <div id="booking-slots-grid" class="grid grid-cols-4 gap-2">
+              <!-- Gerado via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra Inferior Fixa com Preço Somado e Botão "Confirmar Horário" -->
+      <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#0d0e12]/95 backdrop-blur-lg border-t border-white/[0.08] px-4 py-3 flex justify-center">
+        <div class="w-full max-w-md flex items-center justify-between">
+          <div>
+            <span id="booking-bar-count" class="text-[10px] text-zinc-400 block font-medium">Total (1 serviço)</span>
+            <span id="booking-bar-price" class="text-base font-black text-[#e5a769]">R$ 40,00</span>
+          </div>
+          <button id="btn-confirm-slot" onclick="finishBookingReservation()" class="py-3 px-6 rounded-2xl btn-lux-primary text-xs font-extrabold shadow-lg">
+            Confirmar Horário
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 4: MINHA AGENDA (APENAS HORÁRIOS DO USER) -->
+    <!-- ============================================== -->
+    <section id="view-my-bookings" class="hidden fade-soft px-4 py-3 space-y-3 pb-24">
+      <div class="flex items-center justify-between pt-1">
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Minha Agenda</h3>
+          <p class="text-[10px] text-zinc-400">Seus horários reservados na barbearia</p>
+        </div>
+        <button onclick="switchTab('home')" class="text-xs text-[#e5a769] font-semibold">← Voltar</button>
+      </div>
+
+      <div id="client-bookings-container" class="space-y-2.5 pt-1">
+        <!-- Preenchido via JS apenas com os horários do usuário logado -->
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 5: SOBRE A BARBEARIA (SEM BOTÃO SAIR)     -->
+    <!-- ============================================== -->
+    <section id="view-about" class="hidden fade-soft px-4 py-3 space-y-3 pb-24">
+      <div class="flex items-center justify-between pt-1">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Sobre a Barbearia</h3>
+        <button onclick="switchTab('home')" class="text-xs text-[#e5a769] font-semibold">← Voltar</button>
+      </div>
+
+      <div class="lux-card p-4 space-y-3.5">
+        <div class="flex items-center space-x-3 pb-3 border-b border-white/[0.08]">
+          <img src="/barbearia_logo.jpg" class="w-12 h-12 rounded-full object-cover border border-[#e5a769]/40" />
+          <div>
+            <h4 id="about-shop-name" class="text-sm font-bold text-white">Guuh Barbeiro</h4>
+            <p id="about-shop-slogan" class="text-xs text-zinc-400">Estilo • Confiança • Atitude</p>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <div class="flex items-start space-x-2.5">
+            <i class="fa-solid fa-location-dot text-[#e5a769] text-xs mt-0.5"></i>
+            <div>
+              <span class="font-bold text-white block">Endereço</span>
+              <span id="about-shop-address" class="text-zinc-400">Atendimento exclusivo com horário marcado</span>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-2.5">
+            <i class="fa-regular fa-clock text-[#e5a769] text-xs mt-0.5"></i>
+            <div>
+              <span class="font-bold text-white block">Funcionamento</span>
+              <span id="about-shop-hours" class="text-zinc-400">Terça a Sábado: 09:00 às 20:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 6: PERFIL DO USUÁRIO (COM SAIR DA CONTA)  -->
+    <!-- ============================================== -->
+    <section id="view-profile" class="hidden fade-soft px-4 py-3 space-y-3.5 pb-24">
+      <div class="flex items-center justify-between pt-1">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Meu Perfil</h3>
+        <button onclick="switchTab('home')" class="text-xs text-[#e5a769] font-semibold">← Voltar</button>
+      </div>
+
+      <!-- Card Dados do Usuário com Avatar no Estilo Silhueta Circular -->
+      <div class="lux-card p-4 space-y-3.5">
+        <div class="flex items-center space-x-3.5 pb-3.5 border-b border-white/[0.08]">
+          <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/15 shadow-lg shrink-0">
+            <img id="profile-user-avatar" src="/user_avatar.svg" alt="Avatar do Usuário" class="w-full h-full object-cover" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <h4 id="profile-display-name" class="text-sm font-bold text-white truncate">Usuário</h4>
+              <span id="profile-role-badge" class="text-[9px] px-2 py-0.5 rounded-full bg-[#e5a769]/15 text-[#e5a769] border border-[#e5a769]/30 font-bold uppercase">Cliente</span>
+            </div>
+            <p id="profile-display-email" class="text-[11px] text-zinc-400 truncate mt-0.5">email@exemplo.com</p>
+          </div>
+        </div>
+
+        <!-- Editar Dados Rápidos -->
+        <div class="space-y-2.5 text-xs">
+          <div>
+            <label class="block text-[10px] text-zinc-400 mb-1">Seu Nome</label>
+            <input type="text" id="profile-input-name" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-400 mb-1">Celular / WhatsApp</label>
+            <input type="tel" id="profile-input-phone" placeholder="(11) 99999-9999" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <button onclick="saveUserProfile()" class="w-full py-2.5 rounded-xl bg-[#1c1f28] hover:bg-[#232733] border border-white/[0.08] text-xs font-bold text-[#e5a769] transition">
+            <i class="fa-solid fa-check mr-1"></i>Salvar Alterações
+          </button>
+        </div>
+
+        <!-- Acesso ao Painel do Administrador & Sair da Conta -->
+        <div class="pt-2 border-t border-white/[0.08] space-y-2">
+          <button onclick="switchTab('admin')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#e5a769]/20 to-[#cf853c]/20 border border-[#e5a769]/40 text-[#e5a769] text-xs font-bold flex items-center justify-center space-x-2 hover:bg-[#e5a769]/30 transition">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Acessar Painel do Administrador</span>
+          </button>
+
+          <!-- Botão Sair da Conta (Associado ao Perfil conforme solicitado) -->
+          <button onclick="handleLogout()" class="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 text-xs font-bold hover:bg-red-500/20 transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Sair da Conta</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 7: PAINEL DO ADMINISTRADOR (PREMIUM LUX)  -->
+    <!-- ============================================== -->
+    <section id="view-admin" class="hidden fade-soft px-4 py-3 space-y-3.5 pb-28">
+      <!-- Banner Executivo do Painel Admin -->
+      <div class="admin-hero-banner p-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="relative shrink-0">
+            <img src="/barbearia_logo.jpg" class="w-11 h-11 rounded-2xl object-cover border border-[#e5a769]/50 shadow-lg" />
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#161821] absolute -bottom-0.5 -right-0.5"></span>
+          </div>
+          <div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[9px] uppercase tracking-widest font-extrabold text-[#e5a769]">Gestão Executiva</span>
+            </div>
+            <h3 class="text-sm font-black text-white leading-tight">Painel Administrativo</h3>
+            <p class="text-[10px] text-zinc-400 mt-0.5">Sincronizado em tempo real com o app</p>
+          </div>
+        </div>
+        <button onclick="switchTab('home')" class="px-3 py-2 rounded-xl bg-[#0d0e12]/80 hover:bg-[#e5a769] hover:text-[#0d0e12] border border-[#e5a769]/35 text-[10px] text-[#e5a769] font-extrabold transition flex items-center space-x-1.5 shrink-0 shadow-md">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>Ver App</span>
+        </button>
+      </div>
+
+      <!-- Menu de Abas do Administrador com Ícones -->
+      <div class="grid grid-cols-4 gap-1.5 bg-[#111318] p-1.5 rounded-2xl border border-white/[0.07] shadow-inner">
+        <button onclick="switchAdminSubTab('agenda')" id="admin-tab-btn-agenda" class="py-2 px-1 rounded-xl text-[10px] font-bold bg-[#e5a769] text-[#0d0e12] shadow-md transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-calendar-check text-xs"></i>
+          <span>Agenda</span>
+        </button>
+        <button onclick="switchAdminSubTab('services')" id="admin-tab-btn-services" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-scissors text-xs"></i>
+          <span>Serviços</span>
+        </button>
+        <button onclick="switchAdminSubTab('barbers')" id="admin-tab-btn-barbers" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-user-clock text-xs"></i>
+          <span>Horários</span>
+        </button>
+        <button onclick="switchAdminSubTab('settings')" id="admin-tab-btn-settings" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-store text-xs"></i>
+          <span>Loja</span>
+        </button>
+      </div>
+
+      <!-- SUB-ABA 1: AGENDA GERAL & FATURAMENTO -->
+      <div id="admin-sub-agenda" class="space-y-3.5">
+        <!-- Cards Executivos de Resumo (KPIs) -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="admin-stat-card p-3 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Reservas</span>
+              <div class="w-6 h-6 rounded-lg bg-[#e5a769]/15 text-[#e5a769] flex items-center justify-center text-[10px]">
+                <i class="fa-regular fa-calendar-check"></i>
+              </div>
+            </div>
+            <span id="admin-stat-total" class="text-base font-black text-white">0</span>
+            <span class="text-[9px] text-zinc-500">Ativas no sistema</span>
+          </div>
+
+          <div class="admin-stat-card p-3 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Concluídos</span>
+              <div class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-check-double"></i>
+              </div>
+            </div>
+            <span id="admin-stat-done" class="text-base font-black text-emerald-400">0</span>
+            <span class="text-[9px] text-zinc-500">Clientes atendidos</span>
+          </div>
+
+          <div class="admin-stat-card p-3 flex flex-col justify-between border-[#e5a769]/25">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] font-bold text-[#e5a769] uppercase tracking-wider">Receita</span>
+              <div class="w-6 h-6 rounded-lg bg-[#e5a769]/20 text-[#e5a769] flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+            </div>
+            <span id="admin-stat-revenue" class="text-base font-black text-[#e5a769]">R$ 0</span>
+            <span class="text-[9px] text-zinc-500">Total previsto</span>
+          </div>
+        </div>
+
+        <!-- Barra de Filtro de Data -->
+        <div class="admin-item-card p-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-xl bg-[#e5a769]/15 text-[#e5a769] flex items-center justify-center text-xs">
+              <i class="fa-solid fa-filter"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white leading-tight">Horários de Clientes</h4>
+              <span class="text-[9px] text-zinc-400 block">Filtre por dia ou veja todos</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <input type="date" id="admin-filter-date" onchange="renderAdminAgenda()" class="lux-input px-2 py-1 text-[10px] text-white" />
+            <button type="button" onclick="clearAdminDateFilter()" class="px-2 py-1 rounded-lg bg-[#1c1f29] border border-white/[0.08] text-[9px] text-zinc-300 hover:text-[#e5a769] font-bold">
+              Todos
+            </button>
+          </div>
+        </div>
+
+        <div id="admin-appointments-list" class="space-y-2.5">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- SUB-ABA 2: GERENCIAR SERVIÇOS (CRIAR / EDITAR / EXCLUIR) -->
+      <div id="admin-sub-services" class="hidden space-y-3.5">
+        <div class="admin-section-card p-4 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <div>
+                <h4 id="admin-service-form-title" class="text-xs font-extrabold text-white">Cadastrar Novo Serviço</h4>
+                <span class="text-[9px] text-zinc-400 block">Aparece na hora para o cliente escolher e somar</span>
+              </div>
+            </div>
+            <button type="button" id="btn-cancel-service-edit" onclick="resetAdminServiceForm()" class="hidden px-2 py-1 rounded-lg bg-zinc-800 text-[10px] text-zinc-300 hover:text-white">
+              Cancelar
+            </button>
+          </div>
+          <input type="hidden" id="admin-svc-id" />
+
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div class="col-span-2">
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Nome do Serviço</label>
+              <input type="text" id="admin-svc-name" placeholder="Ex: Corte Degradê, Barba, Hidratação..." class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Valor (R$)</label>
+              <input type="number" step="0.5" id="admin-svc-price" placeholder="40.00" class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Duração (minutos)</label>
+              <input type="number" id="admin-svc-minutes" placeholder="35" class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Categoria</label>
+              <select id="admin-svc-category" class="w-full lux-input px-2.5 py-2 text-xs text-white bg-[#181a20]">
+                <option value="Cabelo">Cabelo / Corte</option>
+                <option value="Barba">Barba</option>
+                <option value="Química">Química (Alisamento/Relaxamento)</option>
+                <option value="Pintura">Pintura / Platinado</option>
+                <option value="Acabamento">Acabamento / Pezinho</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Foto (URL opcional)</label>
+              <input type="text" id="admin-svc-image" placeholder="https://..." class="w-full lux-input px-2.5 py-2 text-xs text-white" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Descrição</label>
+              <input type="text" id="admin-svc-desc" placeholder="Detalhes do procedimento..." class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+          </div>
+
+          <button type="button" onclick="saveAdminService()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Salvar no Catálogo</span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between px-1">
+          <h4 class="text-xs font-bold text-white uppercase tracking-wider">Catálogo Ativo</h4>
+          <span id="admin-services-count-badge" class="text-[10px] text-[#e5a769] font-bold">6 serviços</span>
+        </div>
+        <div id="admin-services-list" class="space-y-2">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- SUB-ABA 3: PROFISSIONAIS, DIAS DISPONÍVEIS E TODOS OS HORÁRIOS -->
+      <div id="admin-sub-barbers" class="hidden space-y-3.5">
+        <!-- Adicionar ou Editar Profissional -->
+        <div class="admin-section-card p-4 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+                <i class="fa-solid fa-user-plus"></i>
+              </div>
+              <div>
+                <h4 id="admin-barber-form-title" class="text-xs font-extrabold text-white">Adicionar / Editar Barbeiro</h4>
+                <span class="text-[9px] text-zinc-400 block">Gerencie a equipe e os horários disponíveis</span>
+              </div>
+            </div>
+            <button type="button" id="btn-cancel-barber-edit" onclick="resetAdminBarberForm()" class="hidden px-2 py-1 rounded-lg bg-zinc-800 text-[10px] text-zinc-300 hover:text-white">
+              Novo
+            </button>
+          </div>
+          <input type="hidden" id="admin-barber-id" />
+
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Nome do Profissional</label>
+              <input type="text" id="admin-barber-name" placeholder="Ex: Ricardo" class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Especialidade</label>
+              <input type="text" id="admin-barber-exp" placeholder="Ex: Cortes & Químicas" class="w-full lux-input px-3 py-2 text-xs text-white" />
+            </div>
+          </div>
+
+          <button type="button" onclick="saveAdminBarberBasic()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>Salvar Profissional</span>
+          </button>
+        </div>
+
+        <!-- Lista de Profissionais com Configuração de Datas, Dias da Semana e Horários -->
+        <div id="admin-barbers-list" class="space-y-3.5">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- SUB-ABA 4: DADOS DA BARBEARIA -->
+      <div id="admin-sub-settings" class="hidden space-y-3.5">
+        <div class="admin-section-card p-4 space-y-3 text-xs">
+          <div class="flex items-center space-x-2 pb-2 border-b border-white/[0.07]">
+            <div class="w-7 h-7 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+              <i class="fa-solid fa-store"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-extrabold text-white">Informações da Barbearia</h4>
+              <span class="text-[9px] text-zinc-400 block">Exibidas na aba Sobre para todos os clientes</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Nome da Barbearia</label>
+            <input type="text" id="admin-shop-name" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Slogan / Subtítulo</label>
+            <input type="text" id="admin-shop-slogan" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Endereço / Localização</label>
+            <input type="text" id="admin-shop-address" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Horário de Funcionamento</label>
+            <input type="text" id="admin-shop-hours" class="w-full lux-input px-3 py-2 text-xs text-white" />
+          </div>
+          <button type="button" onclick="saveAdminShopSettings()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold mt-1 flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Salvar Informações da Loja</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- BOTTOM NAVIGATION COM BOTÃO CENTRAL FLUTUANTE  -->
+    <!-- ============================================== -->
+    <nav id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0d0e12]/95 backdrop-blur-md border-t border-white/[0.08] flex justify-center">
+      <div class="w-full max-w-md flex items-center justify-around py-2 px-3 relative">
+        
+        <!-- Home -->
+        <button onclick="switchTab('home')" id="nav-item-home" class="flex flex-col items-center justify-center space-y-1 text-[#e5a769]">
+          <i class="fa-solid fa-house text-sm"></i>
+          <span class="text-[9px] font-semibold">Home</span>
+        </button>
+
+        <!-- Minha Agenda -->
+        <button onclick="switchTab('my-bookings')" id="nav-item-bookings" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
+          <i class="fa-regular fa-calendar text-sm"></i>
+          <span class="text-[9px] font-medium">Agenda</span>
+        </button>
+
+        <!-- Botão Central Flutuante Dourado com Tesoura ✂️ -->
+        <div class="relative -top-4">
+          <button onclick="openQuickBooking()" class="w-12 h-12 rounded-full fab-center flex items-center justify-center text-zinc-950 font-black text-lg border-4 border-[#0d0e12]">
+            <i class="fa-solid fa-scissors"></i>
+          </button>
+        </div>
+
+        <!-- Sobre / Barbearia -->
+        <button onclick="switchTab('about')" id="nav-item-about" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
+          <i class="fa-solid fa-store text-sm"></i>
+          <span class="text-[9px] font-medium">Sobre</span>
+        </button>
+
+        <!-- Perfil (Onde fica os dados da conta e o Sair da Conta) -->
+        <button onclick="switchTab('profile')" id="nav-item-profile" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
+          <i class="fa-regular fa-user text-sm"></i>
+          <span class="text-[9px] font-medium">Perfil</span>
+        </button>
+
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- MODAL DE SUCESSO DE RESERVA -->
+  <div id="modal-success-lux" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="lux-card w-full max-w-xs p-5 border-[#e5a769]/40 text-center space-y-3.5 fade-soft shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center text-lg">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div>
+        <h4 class="text-sm font-bold text-white">Horário Confirmado!</h4>
+        <p class="text-[11px] text-zinc-400 mt-0.5">Sua vaga foi reservada com sucesso.</p>
+      </div>
+      <div id="modal-success-content" class="p-3 rounded-2xl bg-[#161820] border border-white/[0.08] text-[11px] text-left space-y-1 text-zinc-300">
+        <!-- Preenchido via JS -->
+      </div>
+      <button onclick="closeSuccessAndGoHome()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-bold">
+        Ver Minha Agenda
+      </button>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

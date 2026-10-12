@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: barber-api
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://banco-mongodb:27017/barber}
+      - JWT_SECRET=${JWT_SECRET:-barber_secret_jwt_bvitsystem_2026}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - PORT=5000
+      - NODE_ENV=production
+    volumes:
+      - barber_data:/app/data
+    networks:
+      - shared-network
+      - web
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: barber-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - web
+
+volumes:
+  barber_data:
+
+networks:
+  shared-network:
+    external: true
+  web:
+    external: true

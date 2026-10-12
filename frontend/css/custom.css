@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #0d0e12;
+  --card-dark: #16171e;
+  --card-elevated: #1a1c24;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --amber-primary: #e5a769;
+  --amber-dark: #cf853c;
+  --amber-gradient: linear-gradient(135deg, #e8ae70 0%, #cf853c 100%);
+  --text-white: #f8fafc;
+  --text-muted: #8e95a5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-white);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.auth-mode {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* Glass & Card Styling (Tom Carbono Neutro idêntico à referência enviada) */
+.lux-card {
+  background-color: #111317;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 26px;
+  box-shadow: 0 28px 60px -12px rgba(0, 0, 0, 0.95);
+}
+
+.login-popup-card {
+  background-color: #111317;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 28px;
+  box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.95);
+}
+
+.login-bg-pattern {
+  background-color: #08080a;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(229, 167, 105, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 80% 90%, rgba(229, 167, 105, 0.05) 0%, transparent 45%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 38px 38px, 38px 38px;
+}
+
+.lux-card-elevated {
+  background-color: #15171e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+}
+
+/* Botão Amber/Caramelo Luxo */
+.btn-lux-primary {
+  background: var(--amber-gradient);
+  color: #0d0e12;
+  font-weight: 700;
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px -4px rgba(229, 167, 105, 0.28);
+}
+
+.btn-lux-primary:active {
+  transform: scale(0.975);
+}
+
+/* Floating Center Button */
+.fab-center {
+  background: var(--amber-gradient);
+  color: #0d0e12;
+  box-shadow: 0 10px 25px -2px rgba(229, 167, 105, 0.45);
+  transition: all 0.25s ease;
+}
+
+.fab-center:active {
+  transform: scale(0.92);
+}
+
+/* Inputs Luxuosos */
+.lux-input {
+  background-color: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.lux-input:focus {
+  border-color: var(--amber-primary);
+  box-shadow: 0 0 0 3px rgba(229, 167, 105, 0.15);
+  outline: none;
+}
+
+/* Pílulas de Seleção (Dias e Horários) */
+.pill-select {
+  background-color: #16171e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.pill-select.active {
+  background: var(--amber-gradient) !important;
+  color: #0d0e12 !important;
+  border-color: transparent !important;
+  font-weight: 700 !important;
+}
+
+.pill-select.active span {
+  color: #0d0e12 !important;
+}
+
+/* Avatar de Barbeiro com anel dourado */
+.barber-circle-avatar {
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.barber-circle-avatar.selected {
+  border-color: var(--amber-primary);
+  box-shadow: 0 0 16px rgba(229, 167, 105, 0.4);
+  transform: scale(1.05);
+}
+
+/* Splash Animação */
+.splash-pulse {
+  animation: splashPulse 2s ease-in-out infinite;
+}
+
+@keyframes splashPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(229, 167, 105, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(229, 167, 105, 0.6));
+  }
+}
+
+.splash-progress-bar {
+  animation: progressFill 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes progressFill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.fade-soft {
+  animation: fadeIn 0.28s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+/* ========================================================
+   PAINEL DO ADMINISTRADOR - ESTILO EXECUTIVO PREMIUM
+   ======================================================== */
+.admin-hero-banner {
+  background: linear-gradient(135deg, #161821 0%, #1c1815 55%, #12141b 100%);
+  border: 1px solid rgba(229, 167, 105, 0.25);
+  border-radius: 24px;
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle, rgba(229, 167, 105, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.admin-stat-card {
+  background: linear-gradient(180deg, #161820 0%, #111318 100%);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 20px;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.7);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  border-color: rgba(229, 167, 105, 0.35);
+}
+
+.admin-section-card {
+  background: linear-gradient(180deg, #14161d 0%, #101217 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.85);
+}
+
+.admin-item-card {
+  background-color: #151821;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  transition: all 0.2s ease;
+}
+
+.admin-item-card:hover {
+  border-color: rgba(229, 167, 105, 0.3);
+  background-color: #181b25;
+}
+

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <defs>
+    <clipPath id="circleClip">
+      <circle cx="50" cy="50" r="50" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#circleClip)">
+    <!-- Fundo circular cinza escuro igual ao modelo enviado -->
+    <circle cx="50" cy="50" r="50" fill="#4B4B4B" />
+    <!-- Cabeça do usuário em cinza claro -->
+    <circle cx="50" cy="36" r="16" fill="#CCCCCC" />
+    <!-- Ombros arredondados na base do círculo -->
+    <circle cx="50" cy="91" r="34" fill="#CCCCCC" />
+  </g>
+</svg>
