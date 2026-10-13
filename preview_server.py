@@ -17,10 +17,18 @@ DB_FILE = os.path.join(os.path.dirname(__file__), 'local_db.json')
 DEFAULT_DB = {
     "users": [
         {
-            "_id": "u_admin",
-            "name": "Guuh Administrador",
+            "_id": "u_admin_guuh",
+            "name": "Guuh (Administrador)",
             "email": "admin@barbearia.com",
             "phone": "(11) 99999-9999",
+            "password": "123",
+            "role": "admin"
+        },
+        {
+            "_id": "u_admin_ricardo",
+            "name": "Ricardo (Barbeiro & Admin)",
+            "email": "ricardo@barbearia.com",
+            "phone": "(11) 98888-8888",
             "password": "123",
             "role": "admin"
         },
@@ -110,7 +118,8 @@ DEFAULT_DB = {
             "avatar": "/barbearia_logo.jpg",
             "workDays": [0, 1, 2, 3, 4, 5, 6],
             "blockedDates": [],
-            "workHours": ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
+            "workHours": ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"],
+            "customHours": ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"]
         }
     ],
     "appointments": [],
@@ -119,7 +128,7 @@ DEFAULT_DB = {
         "slogan": "Estilo • Confiança • Atitude",
         "phone": "(11) 99999-9999",
         "address": "Atendimento exclusivo com horário marcado",
-        "openingHours": "Todos os dias: 08:00 às 20:00"
+        "openingHours": "Todos os dias: 08:00 às 23:00"
     }
 }
 
@@ -194,6 +203,17 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             body = {}
 
+        if path.startswith('/api/users/') and path.endswith('/role'):
+            u_id = path.split('/')[3]
+            for u in DB["users"]:
+                if u["_id"] == u_id:
+                    u["role"] = "admin" if body.get("role") == "admin" else "client"
+                    save_db(DB)
+                    self.send_json({"ok": True, "user": u})
+                    return
+            self.send_json({"ok": True})
+            return
+
         if path.startswith('/api/appointments/') and path.endswith('/status'):
             app_id = path.split('/')[3]
             for a in DB["appointments"]:
@@ -251,6 +271,13 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
+        if path.startswith('/api/users/'):
+            u_id = path.split('/')[3]
+            DB["users"] = [u for u in DB["users"] if u["_id"] != u_id]
+            save_db(DB)
+            self.send_json({"ok": True})
+            return
+
         if path.startswith('/api/appointments/'):
             app_id = path.split('/')[3]
             DB["appointments"] = [a for a in DB["appointments"] if a["_id"] != app_id]
@@ -276,7 +303,9 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
         self.send_error(404)
 
     def handle_api_get(self, path, query):
-        if path == '/api/services':
+        if path == '/api/users':
+            self.send_json({"users": DB["users"]})
+        elif path == '/api/services':
             self.send_json({"success": True, "services": DB["services"]})
         elif path == '/api/barbers':
             self.send_json({"success": True, "barbers": DB["barbers"]})

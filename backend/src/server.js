@@ -8,7 +8,9 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// Limite de 10MB para suportar upload de fotos de cortes em Base64
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
@@ -17,18 +19,28 @@ const DB_FILE = path.join(DATA_DIR, 'barber_db.json');
 const ALL_HOURS = [
   '08:00', '09:00', '10:00', '11:00', '12:00',
   '13:00', '14:00', '15:00', '16:00', '17:00',
-  '18:00', '19:00', '20:00'
+  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
 ];
 
 const DEFAULT_DB = {
   users: [
     {
-      _id: 'u_admin',
-      name: 'Guuh Administrador',
+      _id: 'u_admin_guuh',
+      name: 'Guuh (Administrador)',
       email: 'admin@barbearia.com',
       phone: '(11) 99999-9999',
       password: '123',
-      role: 'admin'
+      role: 'admin',
+      createdAt: '2026-10-12'
+    },
+    {
+      _id: 'u_admin_ricardo',
+      name: 'Ricardo (Barbeiro & Admin)',
+      email: 'ricardo@barbearia.com',
+      phone: '(11) 98888-8888',
+      password: '123',
+      role: 'admin',
+      createdAt: '2026-10-12'
     },
     {
       _id: 'u_client1',
@@ -36,7 +48,8 @@ const DEFAULT_DB = {
       email: 'felipe@email.com',
       phone: '(11) 98765-4321',
       password: '123',
-      role: 'client'
+      role: 'client',
+      createdAt: '2026-10-12'
     }
   ],
   services: [
@@ -116,7 +129,8 @@ const DEFAULT_DB = {
       avatar: '/barbearia_logo.jpg',
       workDays: [0, 1, 2, 3, 4, 5, 6],
       blockedDates: [],
-      workHours: [...ALL_HOURS]
+      workHours: [...ALL_HOURS],
+      customHours: [...ALL_HOURS]
     }
   ],
   appointments: [],
@@ -125,7 +139,7 @@ const DEFAULT_DB = {
     slogan: 'Estilo • Confiança • Atitude',
     phone: '(11) 99999-9999',
     address: 'Atendimento exclusivo com horário marcado',
-    openingHours: 'Todos os dias: 08:00 às 20:00'
+    openingHours: 'Todos os dias: 08:00 às 23:00'
   }
 };
 
@@ -167,20 +181,19 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Configuração Google OAuth (Client ID público para o Frontend)
+// Configuração Google OAuth
 app.get('/api/auth/google-config', (req, res) => {
   res.json({
     clientId: process.env.GOOGLE_CLIENT_ID || ''
   });
 });
 
-// Login / Cadastro com Google (Recebe o token JWT do Google Identity Services ou dados decodificados)
+// Login / Cadastro com Google
 app.post('/api/auth/google', async (req, res) => {
   try {
     const { credential, email, name, picture, sub } = req.body;
     let googleUser = { email, name, picture, sub };
 
-    // Se veio o JWT credential do Google Identity Services, decodifica o payload
     if (credential && credential.split('.').length === 3) {
       const payloadBase64 = credential.split('.')[1];
       const decodedJson = Buffer.from(payloadBase64, 'base64').toString('utf-8');
@@ -207,13 +220,16 @@ app.post('/api/auth/google', async (req, res) => {
         email: googleUser.email,
         phone: '',
         avatar: googleUser.picture || '/user_avatar.svg',
-        role: googleUser.email.startsWith('admin@') ? 'admin' : 'client',
-        googleId: googleUser.sub || ''
+        role: 'client',
+        googleId: googleUser.sub || '',
+        createdAt: new Date().toISOString().split('T')[0],
+        lastLogin: new Date().toISOString()
       };
       db.users.push(user);
       saveDB(db);
-    } else if (googleUser.picture && !user.avatar) {
-      user.avatar = googleUser.picture;
+    } else {
+      user.lastLogin = new Date().toISOString();
+      if (googleUser.picture && !user.avatar) user.avatar = googleUser.picture;
       saveDB(db);
     }
 
@@ -238,6 +254,8 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
   }
 
+  found.lastLogin = new Date().toISOString();
+  saveDB(db);
   res.json({ token: 'jwt-session-token', user: found });
 });
 
@@ -255,7 +273,9 @@ app.post('/api/auth/register', (req, res) => {
     email,
     phone: req.body.phone || '',
     password: req.body.password || '123',
-    role: email.startsWith('admin@') || email.startsWith('guuh@') ? 'admin' : 'client'
+    role: req.body.role || 'client',
+    createdAt: new Date().toISOString().split('T')[0],
+    lastLogin: new Date().toISOString()
   };
 
   db.users.push(newUser);
@@ -277,6 +297,50 @@ app.put('/api/auth/profile', (req, res) => {
     return res.json({ user });
   }
   res.json({ user: req.body });
+});
+
+// Gerenciamento de Usuários e Acessos ao Painel Admin
+app.get('/api/users', (req, res) => {
+  const db = loadDB();
+  res.json({ users: db.users });
+});
+
+app.post('/api/users', (req, res) => {
+  const db = loadDB();
+  const email = (req.body.email || '').trim().toLowerCase();
+  if (db.users.some(u => (u.email || '').toLowerCase() === email)) {
+    return res.status(400).json({ error: 'E-mail já cadastrado.' });
+  }
+  const newUser = {
+    _id: req.body._id || `u_${Date.now()}`,
+    name: req.body.name || 'Usuário',
+    email,
+    phone: req.body.phone || '',
+    password: req.body.password || '123',
+    role: req.body.role || 'client',
+    createdAt: new Date().toISOString().split('T')[0]
+  };
+  db.users.push(newUser);
+  saveDB(db);
+  res.status(201).json({ user: newUser });
+});
+
+app.put('/api/users/:id/role', (req, res) => {
+  const db = loadDB();
+  const user = db.users.find(u => u._id === req.params.id);
+  if (user) {
+    user.role = req.body.role === 'admin' ? 'admin' : 'client';
+    saveDB(db);
+    return res.json({ ok: true, user });
+  }
+  res.status(404).json({ error: 'Usuário não encontrado.' });
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  const db = loadDB();
+  db.users = db.users.filter(u => u._id !== req.params.id);
+  saveDB(db);
+  res.json({ ok: true });
 });
 
 // Serviços (GET, POST, PUT, DELETE)
@@ -336,7 +400,8 @@ app.post('/api/barbers', (req, res) => {
     avatar: req.body.avatar || '/barbearia_logo.jpg',
     workDays: req.body.workDays || [0, 1, 2, 3, 4, 5, 6],
     blockedDates: req.body.blockedDates || [],
-    workHours: req.body.workHours || [...ALL_HOURS]
+    workHours: req.body.workHours || [...ALL_HOURS],
+    customHours: req.body.customHours || [...ALL_HOURS]
   };
   db.barbers.push(newB);
   saveDB(db);

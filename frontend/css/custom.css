@@ -18,13 +18,27 @@
   padding: 0;
   -webkit-tap-highlight-color: transparent;
   font-family: 'Plus Jakarta Sans', sans-serif;
+  /* Remove barras de rolagem visíveis em todos os elementos (Firefox/IE/Edge) */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-body {
+/* Remove barras de rolagem visíveis no Chrome, Safari, Opera e WebView */
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+html, body {
   background-color: var(--bg-dark);
   color: var(--text-white);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 body.auth-mode {
@@ -33,7 +47,7 @@ body.auth-mode {
   overflow: hidden !important;
 }
 
-/* Glass & Card Styling (Tom Carbono Neutro idêntico à referência enviada) */
+/* Glass & Card Styling */
 .lux-card {
   background-color: #111317;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -74,6 +88,10 @@ body.auth-mode {
   box-shadow: 0 8px 24px -4px rgba(229, 167, 105, 0.28);
 }
 
+.btn-lux-primary:hover {
+  filter: brightness(1.06);
+}
+
 .btn-lux-primary:active {
   transform: scale(0.975);
 }
@@ -103,25 +121,6 @@ body.auth-mode {
   border-color: var(--amber-primary);
   box-shadow: 0 0 0 3px rgba(229, 167, 105, 0.15);
   outline: none;
-}
-
-/* Pílulas de Seleção (Dias e Horários) */
-.pill-select {
-  background-color: #16171e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  transition: all 0.2s ease;
-}
-
-.pill-select.active {
-  background: var(--amber-gradient) !important;
-  color: #0d0e12 !important;
-  border-color: transparent !important;
-  font-weight: 700 !important;
-}
-
-.pill-select.active span {
-  color: #0d0e12 !important;
 }
 
 /* Avatar de Barbeiro com anel dourado */
@@ -170,23 +169,8 @@ body.auth-mode {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-}
-
 /* ========================================================
-   PAINEL DO ADMINISTRADOR - ESTILO EXECUTIVO PREMIUM
+   PAINEL DO ADMINISTRADOR & DESKTOP APP - ESTILO EXECUTIVO
    ======================================================== */
 .admin-hero-banner {
   background: linear-gradient(135deg, #161821 0%, #1c1815 55%, #12141b 100%);
@@ -202,8 +186,8 @@ body.auth-mode {
   position: absolute;
   top: -40px;
   right: -40px;
-  width: 130px;
-  height: 130px;
+  width: 160px;
+  height: 160px;
   background: radial-gradient(circle, rgba(229, 167, 105, 0.18) 0%, transparent 70%);
   pointer-events: none;
 }
@@ -218,6 +202,7 @@ body.auth-mode {
 
 .admin-stat-card:hover {
   border-color: rgba(229, 167, 105, 0.35);
+  transform: translateY(-2px);
 }
 
 .admin-section-card {
@@ -239,3 +224,27 @@ body.auth-mode {
   background-color: #181b25;
 }
 
+/* Modal / Alerta Customizado Luxuoso */
+.lux-modal-backdrop {
+  background: rgba(5, 6, 8, 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.lux-modal-box {
+  background: linear-gradient(180deg, #161821 0%, #101217 100%);
+  border: 1px solid rgba(229, 167, 105, 0.3);
+  border-radius: 26px;
+  box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.95);
+  animation: modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
