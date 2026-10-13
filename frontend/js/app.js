@@ -572,16 +572,57 @@ function triggerBrowserPushNotification(title, body) {
 // ========================================================
 // INICIALIZAÇÃO & SINCRONIZAÇÃO DE DADOS
 // ========================================================
+function isAdminRoute() {
+  const path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '');
+  const hash = (window.location.hash || '').toLowerCase();
+  const params = new URLSearchParams(window.location.search || '');
+  return path === '/admin' || path.endsWith('/admin') || hash === '#admin' || params.has('admin');
+}
+
+function applyAdminLoginScreenAppearance(isAdminUrl) {
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+  const heroTitle = document.getElementById('login-hero-title');
+  const loginInput = document.getElementById('input-auth-login');
+
+  if (isAdminUrl && state.currentAuthMode === 'login') {
+    if (heroTitle) heroTitle.textContent = 'Painel Admin';
+    if (title) title.textContent = 'Acesso Administrativo';
+    if (subtitle) subtitle.textContent = 'Exclusivo para Guuh e Ricardo (/admin)';
+    if (loginInput && !loginInput.value) {
+      loginInput.value = 'admin@barbearia.com';
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   initSplashScreen();
   await loadAllData();
   initApp();
 });
 
+window.addEventListener('popstate', () => {
+  if (isAdminRoute()) {
+    if (state.currentUser && state.currentUser.role === 'admin') {
+      switchTab('admin');
+    } else {
+      applyAdminLoginScreenAppearance(true);
+      switchTab('login');
+    }
+  } else if (state.currentUser) {
+    switchTab('home');
+  }
+});
+
 function initSplashScreen() {
   document.body.classList.add('auth-mode');
   const splash = document.getElementById('splash-screen');
-  if (!splash) return;
+  if (!splash) {
+    checkSessionAndStart();
+    return;
+  }
+
+  const delay = isAdminRoute() ? 450 : 2800;
 
   setTimeout(() => {
     splash.style.opacity = '0';
@@ -589,8 +630,8 @@ function initSplashScreen() {
     setTimeout(() => {
       splash.remove();
       checkSessionAndStart();
-    }, 600);
-  }, 2800);
+    }, 400);
+  }, delay);
 }
 
 async function loadAllData() {
@@ -790,6 +831,7 @@ async function syncModulesToServer() {
 }
 
 function checkSessionAndStart() {
+  const wantsAdmin = isAdminRoute();
   const savedUser = localStorage.getItem('guuh_client_user');
   if (savedUser) {
     try {
@@ -802,9 +844,25 @@ function checkSessionAndStart() {
       renderHomeBarbers();
       renderAboutShopInfo();
       updateClientNotificationBadge();
+
+      if (wantsAdmin) {
+        if (state.currentUser.role === 'admin') {
+          switchTab('admin');
+          return;
+        }
+        // Se estiver logado como cliente comum mas acessou /admin, abre o login administrativo
+        applyAdminLoginScreenAppearance(true);
+        switchTab('login');
+        return;
+      }
+
       switchTab('home');
       return;
     } catch (e) {}
+  }
+
+  if (wantsAdmin) {
+    applyAdminLoginScreenAppearance(true);
   }
   switchTab('login');
 }
@@ -4626,15 +4684,26 @@ async function switchTab(tab) {
   if (tab === 'admin') {
     if (!state.currentUser || state.currentUser.role !== 'admin') {
       await showLuxAlert({
-        title: 'Acesso Restrito',
-        message: 'Somente contas autorizadas (Guuh e Ricardo) possuem acesso ao Painel Administrativo.',
-        type: 'error'
+        title: 'Acesso Restrito (/admin)',
+        message: 'Faça login com uma conta de Administrador (Guuh ou Ricardo) para acessar o Painel Administrativo.',
+        type: 'warning'
       });
+      applyAdminLoginScreenAppearance(true);
+      switchTab('login');
       return;
     }
   }
 
   state.currentTab = tab;
+
+  // Mantém a URL sincronizada com /admin quando estiver no Painel Administrativo
+  try {
+    if (tab === 'admin' && window.location.pathname !== '/admin') {
+      window.history.replaceState({}, '', '/admin');
+    } else if (['home', 'booking', 'my-bookings', 'loyalty', 'about', 'profile'].includes(tab) && isAdminRoute()) {
+      window.history.replaceState({}, '', '/');
+    }
+  } catch (e) {}
 
   if (tab === 'login') {
     document.body.classList.add('auth-mode');
