@@ -390,7 +390,7 @@ const state = {
   shop: {
     name: 'Guuh Barbeiro',
     slogan: 'Estilo • Confiança • Atitude',
-    address: 'Atendimento exclusivo com horário marcado',
+    address: 'Av. Paulista, 1000 - São Paulo, SP',
     openingHours: 'Todos os dias: 08:00 às 23:00',
     logo: '/barbearia_logo.jpg'
   },
@@ -596,9 +596,23 @@ function applyAdminLoginScreenAppearance(isAdminUrl) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Carrega sessão imediatamente antes da splash sumir para nunca piscar a tela de login ao recarregar!
+  try {
+    const lsUsers = localStorage.getItem('guuh_db_users');
+    const lsBarbers = localStorage.getItem('guuh_db_barbers');
+    const lsServices = localStorage.getItem('guuh_db_services');
+    const lsShop = localStorage.getItem('guuh_db_shop');
+    state.users = lsUsers ? JSON.parse(lsUsers) : [...DEFAULT_USERS];
+    state.barbers = lsBarbers ? JSON.parse(lsBarbers) : JSON.parse(JSON.stringify(DEFAULT_BARBERS));
+    state.services = lsServices ? JSON.parse(lsServices) : [...DEFAULT_SERVICES];
+    if (lsShop) state.shop = { ...state.shop, ...JSON.parse(lsShop) };
+  } catch (e) {}
+
+  checkSessionAndStart();
   initSplashScreen();
   await loadAllData();
   initApp();
+  checkSessionAndStart();
 });
 
 window.addEventListener('popstate', () => {
@@ -615,22 +629,24 @@ window.addEventListener('popstate', () => {
 });
 
 function initSplashScreen() {
-  document.body.classList.add('auth-mode');
   const splash = document.getElementById('splash-screen');
+  const hasSavedSession = Boolean(localStorage.getItem('guuh_client_user'));
+  if (!hasSavedSession) {
+    document.body.classList.add('auth-mode');
+  }
   if (!splash) {
-    checkSessionAndStart();
     return;
   }
 
-  const delay = isAdminRoute() ? 450 : 2800;
+  // Se já estiver logado ou for /admin, remove a splash rapidamente sem nunca mostrar tela de login
+  const delay = hasSavedSession ? 250 : (isAdminRoute() ? 450 : 1800);
 
   setTimeout(() => {
     splash.style.opacity = '0';
     splash.style.pointerEvents = 'none';
     setTimeout(() => {
       splash.remove();
-      checkSessionAndStart();
-    }, 400);
+    }, 300);
   }, delay);
 }
 
@@ -1165,6 +1181,7 @@ function updateGreeting() {
   const timeEl = document.getElementById('home-greeting-time');
   const adminBtn = document.getElementById('btn-header-admin');
   const profileAdminBtn = document.getElementById('btn-profile-admin');
+  const headerAvatarEl = document.getElementById('header-user-avatar');
 
   const now = new Date();
   const hour = now.getHours();
@@ -1175,6 +1192,9 @@ function updateGreeting() {
   if (timeEl) timeEl.textContent = timeGreeting;
   if (nameEl) {
     nameEl.textContent = state.currentUser ? state.currentUser.name : 'Visitante';
+  }
+  if (headerAvatarEl) {
+    headerAvatarEl.src = (state.currentUser && state.currentUser.avatar) ? state.currentUser.avatar : '/user_avatar.svg';
   }
 
   const isAdmin = Boolean(state.currentUser && state.currentUser.role === 'admin');
@@ -1199,60 +1219,17 @@ function updateGreeting() {
     }
   }
 
-  // Atualiza saldo de pontos do Programa de Fidelidade no topo do cabeçalho
-  const ptsHeader = document.getElementById('header-loyalty-points');
-  if (ptsHeader) {
-    ptsHeader.textContent = getUserLoyaltyPoints(state.currentUser);
-  }
-
   renderHomeActivePromoBanner();
   updateClientNotificationBadge();
 }
 
-function getUserLoyaltyPoints(user) {
-  if (!user) return 0;
-  if (!state.loyalty || !state.loyalty.balances) return 0;
-  const key = user._id || user.email || 'guest';
-  if (typeof state.loyalty.balances[key] === 'number') return state.loyalty.balances[key];
-  if (user.email && typeof state.loyalty.balances[user.email] === 'number') return state.loyalty.balances[user.email];
+function getUserLoyaltyPoints() {
   return 0;
 }
 
-function setUserLoyaltyPoints(user, newPts) {
-  if (!user) return;
-  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
-  if (!state.loyalty.balances) state.loyalty.balances = {};
-  const key = user._id || user.email || 'guest';
-  state.loyalty.balances[key] = Math.max(0, newPts);
-}
+function setUserLoyaltyPoints() {}
 
-function awardLoyaltyPoints(userId, clientName, clientEmail, pointsToAdd, desc) {
-  if (!pointsToAdd || pointsToAdd <= 0) return;
-  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
-  if (!state.loyalty.balances) state.loyalty.balances = {};
-  if (!Array.isArray(state.loyalty.history)) state.loyalty.history = [];
-
-  const targetUser = state.users.find(
-    u => (userId && u._id === userId) || (clientEmail && (u.email || '').toLowerCase() === clientEmail.toLowerCase()) || (clientName && (u.name || '').toLowerCase() === clientName.toLowerCase())
-  );
-  const key = targetUser ? targetUser._id : (userId || clientEmail || clientName || 'guest');
-  state.loyalty.balances[key] = (state.loyalty.balances[key] || 0) + pointsToAdd;
-
-  state.loyalty.history.unshift({
-    _id: `lh_${Date.now()}`,
-    userId: key,
-    clientName: targetUser ? targetUser.name : (clientName || 'Cliente'),
-    type: 'earn',
-    points: pointsToAdd,
-    desc,
-    date: formatNowTimestamp()
-  });
-
-  const ptsHeader = document.getElementById('header-loyalty-points');
-  if (ptsHeader && state.currentUser) {
-    ptsHeader.textContent = getUserLoyaltyPoints(state.currentUser);
-  }
-}
+function awardLoyaltyPoints() {}
 
 function markPromotionsReceivedForCurrentUser() {
   if (!state.currentUser) return;
@@ -1377,7 +1354,7 @@ function renderHomeActivePromoBanner() {
             <span class="text-[10px] text-zinc-200 block truncate">Vagou um horário para ${w.serviceName}! Toque para agendar com 1 clique.</span>
           </div>
         </div>
-        <span class="text-[10px] font-extrabold text-emerald-300 shrink-0 ml-2">Agendar →</span>
+        <span class="text-[10px] font-extrabold text-emerald-300 shrink-0 ml-2">Agendar</span>
       </div>
     `;
     return;
@@ -1393,7 +1370,7 @@ function renderHomeActivePromoBanner() {
             <i class="fa-solid fa-star"></i>
           </div>
           <div class="min-w-0">
-            <span class="text-[11px] font-extrabold text-amber-300 block truncate">Pesquisa de Satisfação • Ganhe +5 Pontos!</span>
+            <span class="text-[11px] font-extrabold text-amber-300 block truncate">Pesquisa de Satisfação</span>
             <span class="text-[10px] text-zinc-200 block truncate">Como foi seu atendimento de ${app.serviceName} com ${app.barberName}? Avalie agora.</span>
           </div>
         </div>
@@ -1420,7 +1397,7 @@ function renderHomeActivePromoBanner() {
           <span class="text-[10px] text-zinc-300 block truncate">${latest.message}</span>
         </div>
       </div>
-      <span class="text-[10px] font-bold text-[#e5a769] shrink-0 ml-2">Ver <i class="fa-solid fa-chevron-right text-[8px]"></i></span>
+      <span class="text-[10px] font-bold text-[#e5a769] shrink-0 ml-2">Ver</span>
     </div>
   `;
 }
@@ -1504,9 +1481,9 @@ async function openClientNotificationsModal() {
         <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/35 space-y-2">
           <div class="flex items-center justify-between">
             <span class="font-extrabold text-white text-xs">${a.serviceName}</span>
-            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">+5 pts Fidelidade</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">Avaliação</span>
           </div>
-          <p class="text-[11px] text-zinc-300">Conte como foi seu atendimento com <b>${a.barberName}</b> e ganhe pontos!</p>
+          <p class="text-[11px] text-zinc-300">Conte como foi seu atendimento com <b>${a.barberName}</b>!</p>
           <button onclick="closeClientNotificationsModal(); openSatisfactionModal('${a._id}');" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#0d0e12] text-[11px] font-extrabold transition">
             Responder Avaliação (1 a 5 Estrelas)
           </button>
@@ -1548,7 +1525,7 @@ async function openClientNotificationsModal() {
           <p class="text-[11px] text-zinc-300 leading-relaxed">${rm.personalizedText}</p>
           <div class="flex justify-end pt-1">
             <button onclick="closeClientNotificationsModal(); openBookingService('${rm.serviceId}');" class="text-[10px] font-extrabold text-[#e5a769] hover:underline">
-              Agendar Retorno Agora →
+              Agendar Retorno Agora
             </button>
           </div>
         </div>
@@ -1573,7 +1550,7 @@ async function openClientNotificationsModal() {
           <div class="flex items-center justify-between pt-1.5 border-t border-white/[0.06] text-[9px] text-zinc-400">
             <span><i class="fa-solid fa-check-double text-emerald-400 mr-1"></i>Lido em: ${rec?.readAt || nowStr}</span>
             <button onclick="closeClientNotificationsModal(); openQuickBooking();" class="text-[#e5a769] font-extrabold hover:underline">
-              Agendar Agora →
+              Agendar Agora
             </button>
           </div>
         </div>
@@ -1625,8 +1602,8 @@ function renderHomeBarbers() {
             </div>
           </div>
         </div>
-        <div class="w-8 h-8 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-[#e5a769] group-hover:bg-[#e5a769] group-hover:text-zinc-950 transition">
-          <i class="fa-solid fa-chevron-right text-xs"></i>
+        <div class="px-3 py-1.5 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-[10px] font-extrabold text-[#e5a769] group-hover:bg-[#e5a769] group-hover:text-zinc-950 transition">
+          Agendar
         </div>
       </div>
     `;
@@ -1638,11 +1615,89 @@ function renderAboutShopInfo() {
   const sloganEl = document.getElementById('about-shop-slogan');
   const addrEl = document.getElementById('about-shop-address');
   const hoursEl = document.getElementById('about-shop-hours');
+  const mapIframe = document.getElementById('about-shop-map-iframe');
+  const mapLink = document.getElementById('about-shop-maps-link');
+
+  const rawAddress = (state.shop.address || '').trim();
+  const displayAddress = (!rawAddress || rawAddress === 'Atendimento exclusivo com horário marcado')
+    ? 'Av. Paulista, 1000 - São Paulo, SP'
+    : rawAddress;
 
   if (nameEl) nameEl.textContent = state.shop.name || 'Guuh Barbeiro';
   if (sloganEl) sloganEl.textContent = state.shop.slogan || 'Estilo • Confiança • Atitude';
-  if (addrEl) addrEl.textContent = state.shop.address || 'Atendimento exclusivo com horário marcado';
+  if (addrEl) addrEl.textContent = displayAddress;
   if (hoursEl) hoursEl.textContent = state.shop.openingHours || 'Todos os dias: 08:00 às 23:00';
+
+  const encodedQuery = encodeURIComponent(displayAddress);
+  if (mapIframe) {
+    const targetSrc = `https://www.google.com/maps?q=${encodedQuery}&output=embed`;
+    if (mapIframe.getAttribute('src') !== targetSrc) {
+      mapIframe.setAttribute('src', targetSrc);
+    }
+  }
+  if (mapLink) {
+    mapLink.setAttribute('href', `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`);
+  }
+}
+
+function previewProfileAvatarUrl(url) {
+  const img = document.getElementById('profile-user-avatar');
+  if (img && url && url.trim()) {
+    img.src = url.trim();
+  }
+}
+
+function handleProfileAvatarUpload(fileInput) {
+  const file = fileInput?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      const canvas = document.createElement('canvas');
+      const maxDim = 400;
+      let w = img.width;
+      let h = img.height;
+      if (w > h && w > maxDim) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else if (h > maxDim) {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      const urlInp = document.getElementById('profile-input-avatar');
+      const prevImg = document.getElementById('profile-user-avatar');
+      const headerImg = document.getElementById('header-user-avatar');
+      if (urlInp) urlInp.value = dataUrl;
+      if (prevImg) prevImg.src = dataUrl;
+      if (headerImg) headerImg.src = dataUrl;
+
+      if (state.currentUser) {
+        state.currentUser.avatar = dataUrl;
+        localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
+        const idx = state.users.findIndex(u => u._id === state.currentUser._id || u.email === state.currentUser.email);
+        if (idx >= 0) {
+          state.users[idx].avatar = dataUrl;
+          persistLocalData();
+        }
+      }
+
+      showLuxAlert({
+        title: 'Foto de Perfil Carregada!',
+        message: 'Sua nova foto de perfil já foi aplicada. Clique em "Salvar Alterações" para confirmar seus dados.',
+        type: 'success'
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function renderUserProfile() {
@@ -1652,6 +1707,8 @@ function renderUserProfile() {
   const badge = document.getElementById('profile-role-badge');
   const inpName = document.getElementById('profile-input-name');
   const inpPhone = document.getElementById('profile-input-phone');
+  const inpAvatar = document.getElementById('profile-input-avatar');
+  const avatarImg = document.getElementById('profile-user-avatar');
 
   if (dispName) dispName.textContent = state.currentUser.name || 'Usuário';
   if (dispEmail) dispEmail.textContent = state.currentUser.email || '';
@@ -1660,6 +1717,12 @@ function renderUserProfile() {
   }
   if (inpName) inpName.value = state.currentUser.name || '';
   if (inpPhone) inpPhone.value = state.currentUser.phone || '';
+  if (inpAvatar) {
+    inpAvatar.value = (state.currentUser.avatar && !state.currentUser.avatar.startsWith('data:')) ? state.currentUser.avatar : '';
+  }
+  if (avatarImg) {
+    avatarImg.src = state.currentUser.avatar || '/user_avatar.svg';
+  }
   updateGreeting();
 }
 
@@ -1667,9 +1730,11 @@ async function saveUserProfile() {
   if (!state.currentUser) return;
   const inpName = document.getElementById('profile-input-name');
   const inpPhone = document.getElementById('profile-input-phone');
+  const inpAvatar = document.getElementById('profile-input-avatar');
 
   const newName = inpName ? inpName.value.trim() : '';
   const newPhone = inpPhone ? inpPhone.value.trim() : '';
+  const newAvatar = inpAvatar && inpAvatar.value.trim() ? inpAvatar.value.trim() : (state.currentUser.avatar || '');
 
   if (!newName) {
     await showLuxAlert({
@@ -1682,12 +1747,14 @@ async function saveUserProfile() {
 
   state.currentUser.name = newName;
   state.currentUser.phone = newPhone;
+  if (newAvatar) state.currentUser.avatar = newAvatar;
   localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
 
   const idx = state.users.findIndex(u => u._id === state.currentUser._id || u.email === state.currentUser.email);
   if (idx >= 0) {
     state.users[idx].name = newName;
     state.users[idx].phone = newPhone;
+    if (newAvatar) state.users[idx].avatar = newAvatar;
     persistLocalData();
   }
 
@@ -1703,7 +1770,7 @@ async function saveUserProfile() {
   renderUserProfile();
   await showLuxAlert({
     title: 'Perfil Atualizado!',
-    message: 'Seus dados pessoais foram salvos com sucesso.',
+    message: 'Seus dados pessoais e sua foto de perfil foram salvos com sucesso.',
     type: 'success'
   });
 }
@@ -2966,18 +3033,6 @@ async function adminUpdateAppStatus(appId, status) {
           body: JSON.stringify(tx)
         });
       } catch (e) {}
-
-      // Credita pontos de Fidelidade automaticamente ao cliente!
-      const ptsPerSvc = Number(state.loyalty?.pointsPerService || 10);
-      const ptsPer10 = Number(state.loyalty?.pointsPer10Reais || 1);
-      earnedPoints = ptsPerSvc + Math.floor(gross / 10) * ptsPer10;
-      awardLoyaltyPoints(
-        item.userId,
-        item.clientName,
-        item.clientEmail,
-        earnedPoints,
-        `Atendimento Concluído: ${item.serviceName}`
-      );
     }
   }
 
@@ -2996,9 +3051,9 @@ async function adminUpdateAppStatus(appId, status) {
   updateClientNotificationBadge();
 
   await showLuxAlert({
-    title: status === 'completed' ? 'Atendimento Concluído, Caixa & Fidelidade!' : 'Agendamento Cancelado',
+    title: status === 'completed' ? 'Atendimento Concluído & Lançado no Caixa!' : 'Agendamento Cancelado',
     message: status === 'completed'
-      ? `Atendimento de ${item.clientName} (R$ ${Number(item.price).toFixed(2)}) lançado no Caixa, +${earnedPoints} pontos de Fidelidade creditados e Pesquisa de Satisfação liberada para o cliente!`
+      ? `Atendimento de ${item.clientName} (R$ ${Number(item.price).toFixed(2)}) lançado no Caixa e Pesquisa de Satisfação liberada para o cliente!`
       : notifiedWaitlist > 0
         ? `O horário foi cancelado e ${notifiedWaitlist} cliente(s) da Lista de Espera foram avisados automaticamente!`
         : `O horário de ${item.clientName} foi cancelado.`,
@@ -4764,11 +4819,11 @@ async function switchTab(tab) {
 // (Controle de Sessões Utilizadas x Compradas + Receita Antecipada)
 // ========================================================
 function renderAdminPackages() {
-  const tplList = document.getElementById('admin-packages-templates-list');
+  const tplList = document.getElementById('admin-package-templates-list') || document.getElementById('admin-packages-templates-list');
   const clientPkgList = document.getElementById('admin-client-packages-list');
-  const clientSel = document.getElementById('assign-pkg-client');
+  const clientSel = document.getElementById('assign-pkg-user') || document.getElementById('assign-pkg-client');
   const tplSel = document.getElementById('assign-pkg-template');
-  const countBadge = document.getElementById('admin-client-pkgs-count');
+  const countBadge = document.getElementById('admin-client-pkgs-badge') || document.getElementById('admin-client-pkgs-count');
 
   if (clientSel) {
     clientSel.innerHTML = state.users.map(u => `<option value="${u._id}">${u.name} (${u.email})</option>`).join('');
@@ -4798,7 +4853,6 @@ function renderAdminPackages() {
                 <span class="text-zinc-500 line-through">R$ ${Number(p.originalPrice || p.price).toFixed(2).replace('.', ',')}</span>
                 <span class="font-black text-emerald-400">Por R$ ${Number(p.price).toFixed(2).replace('.', ',')}</span>
                 ${economy > 0 ? `<span class="text-[9px] text-amber-300 font-bold">(Economia R$ ${economy.toFixed(0)})</span>` : ''}
-                <span class="text-[9px] text-[#e5a769] font-bold">• +${p.loyaltyPoints || 30} pts</span>
               </div>
             </div>
             <button type="button" onclick="deleteAdminPackageTemplate('${p._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 flex items-center justify-center shrink-0">
@@ -4868,11 +4922,10 @@ function renderAdminPackages() {
 
 async function saveAdminPackageTemplate() {
   const name = document.getElementById('pkg-name')?.value.trim() || '';
-  const itemsDesc = document.getElementById('pkg-items-desc')?.value.trim() || '';
+  const itemsDesc = (document.getElementById('pkg-items') || document.getElementById('pkg-items-desc'))?.value.trim() || '';
   const totalSessions = parseInt(document.getElementById('pkg-sessions')?.value || '4', 10);
-  const originalPrice = parseFloat(document.getElementById('pkg-original-price')?.value || '0');
+  const originalPrice = parseFloat((document.getElementById('pkg-regular-price') || document.getElementById('pkg-original-price'))?.value || '0');
   const price = parseFloat(document.getElementById('pkg-price')?.value || '0');
-  const loyaltyPoints = parseInt(document.getElementById('pkg-points')?.value || '30', 10);
 
   if (!name || isNaN(price) || price <= 0) {
     await showLuxAlert({
@@ -4889,17 +4942,20 @@ async function saveAdminPackageTemplate() {
     itemsDesc: itemsDesc || `${totalSessions} sessões inclusas`,
     totalSessions: isNaN(totalSessions) || totalSessions < 1 ? 4 : totalSessions,
     originalPrice: isNaN(originalPrice) || originalPrice <= 0 ? price * 1.2 : originalPrice,
-    price,
-    loyaltyPoints: isNaN(loyaltyPoints) ? 30 : loyaltyPoints
+    price
   };
 
   state.packages.unshift(newPkg);
   persistLocalData();
 
-  document.getElementById('pkg-name').value = '';
-  document.getElementById('pkg-items-desc').value = '';
-  document.getElementById('pkg-original-price').value = '';
-  document.getElementById('pkg-price').value = '';
+  const nameEl = document.getElementById('pkg-name');
+  const itemsEl = document.getElementById('pkg-items') || document.getElementById('pkg-items-desc');
+  const origEl = document.getElementById('pkg-regular-price') || document.getElementById('pkg-original-price');
+  const priceEl = document.getElementById('pkg-price');
+  if (nameEl) nameEl.value = '';
+  if (itemsEl) itemsEl.value = '';
+  if (origEl) origEl.value = '';
+  if (priceEl) priceEl.value = '';
 
   renderAdminPackages();
   await showLuxAlert({
@@ -4924,7 +4980,7 @@ async function deleteAdminPackageTemplate(pkgId) {
 }
 
 async function assignPackageToClientAdmin() {
-  const userId = document.getElementById('assign-pkg-client')?.value;
+  const userId = (document.getElementById('assign-pkg-user') || document.getElementById('assign-pkg-client'))?.value;
   const pkgId = document.getElementById('assign-pkg-template')?.value;
 
   const user = state.users.find(u => u._id === userId);
@@ -4972,16 +5028,13 @@ async function assignPackageToClientAdmin() {
   };
   state.finance.transactions.unshift(tx);
 
-  // Credita pontos bônus de fidelidade do pacote
-  awardLoyaltyPoints(user._id, user.name, user.email, Number(pkg.loyaltyPoints || 30), `Compra de Pacote: ${pkg.name}`);
-
   persistLocalData();
   renderAdminPackages();
   renderAdminFinance();
 
   await showLuxAlert({
     title: 'Pacote Atribuído & Receita Lançada!',
-    message: `Pacote "${pkg.name}" ativado para ${user.name} (0/${pkg.totalSessions} sessões usadas). A receita de R$ ${Number(pkg.price).toFixed(2)} entrou no Caixa e +${pkg.loyaltyPoints || 30} pts foram creditados!`,
+    message: `Pacote "${pkg.name}" ativado para ${user.name} (0/${pkg.totalSessions} sessões usadas). A receita antecipada de R$ ${Number(pkg.price).toFixed(2)} entrou no Caixa!`,
     type: 'success'
   });
 }
@@ -5002,7 +5055,7 @@ async function buyPackageFromClientApp(pkgId) {
 
   const confirmed = await showLuxConfirm({
     title: 'Adquirir Pacote com Desconto?',
-    message: `Deseja adquirir "${pkg.name}" (${pkg.totalSessions} sessões) por R$ ${Number(pkg.price).toFixed(2).replace('.', ',')} e ganhar +${pkg.loyaltyPoints || 30} pontos de fidelidade?`,
+    message: `Deseja adquirir "${pkg.name}" (${pkg.totalSessions} sessões) por R$ ${Number(pkg.price).toFixed(2).replace('.', ',')}?`,
     confirmText: 'Sim, Adquirir Agora'
   });
   if (!confirmed) return;
@@ -5040,14 +5093,12 @@ async function buyPackageFromClientApp(pkgId) {
     dueDate: formatDateISO(new Date())
   });
 
-  awardLoyaltyPoints(user._id, user.name, user.email, Number(pkg.loyaltyPoints || 30), `Pacote Adquirido: ${pkg.name}`);
-
   persistLocalData();
   renderClientLoyaltyAndPackages();
 
   await showLuxAlert({
     title: 'Pacote Ativado com Sucesso!',
-    message: `Você agora possui ${pkg.totalSessions} sessões disponíveis em "${pkg.name}" e ganhou +${pkg.loyaltyPoints || 30} pontos no Programa de Fidelidade!`,
+    message: `Você agora possui ${pkg.totalSessions} sessões disponíveis em "${pkg.name}"!`,
     type: 'success'
   });
 }
@@ -5099,10 +5150,11 @@ async function deleteClientPackageAdmin(cpId) {
 // (Saldo, Histórico Entrada/Saída, Custo, Lucro, Alerta Estoque Baixo, Validade e Inventário)
 // ========================================================
 function renderAdminInventory() {
-  const totalItemsEl = document.getElementById('inv-stat-total-items');
-  const costValEl = document.getElementById('inv-stat-cost-value');
-  const saleValEl = document.getElementById('inv-stat-sale-value');
-  const profitEl = document.getElementById('inv-stat-projected-profit');
+  const totalItemsEl = document.getElementById('inv-stat-total-items') || document.getElementById('inv-stat-items-sub');
+  const costValEl = document.getElementById('inv-stat-cost-value') || document.getElementById('inv-stat-cost-total');
+  const saleValEl = document.getElementById('inv-stat-sale-value') || document.getElementById('inv-stat-sale-total');
+  const profitEl = document.getElementById('inv-stat-projected-profit') || document.getElementById('inv-stat-profit-total');
+  const alertsCountEl = document.getElementById('inv-stat-alerts-count');
   const alertsBox = document.getElementById('inv-alerts-box');
   const prodList = document.getElementById('admin-inventory-list');
   const movList = document.getElementById('admin-inventory-movements-list');
@@ -5142,10 +5194,11 @@ function renderAdminInventory() {
 
   const projectedProfit = Math.max(0, totalSale - totalCost);
 
-  if (totalItemsEl) totalItemsEl.textContent = `${totalUnits} un (${items.length} prod.)`;
+  if (totalItemsEl) totalItemsEl.textContent = `${totalUnits} unidades no inventário`;
   if (costValEl) costValEl.textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
   if (saleValEl) saleValEl.textContent = `R$ ${totalSale.toFixed(2).replace('.', ',')}`;
   if (profitEl) profitEl.textContent = `R$ ${projectedProfit.toFixed(2).replace('.', ',')}`;
+  if (alertsCountEl) alertsCountEl.textContent = String(lowStockItems.length + expiringItems.length);
 
   if (movProdSel) {
     movProdSel.innerHTML = items.map(p => `<option value="${p._id}">${p.name} (Saldo: ${p.quantity})</option>`).join('');
@@ -5283,6 +5336,10 @@ function renderAdminInventory() {
   }
 }
 
+async function saveInventoryProductAdmin() {
+  return saveInventoryProduct();
+}
+
 async function saveInventoryProduct() {
   const id = document.getElementById('inv-prod-id')?.value.trim() || '';
   const name = document.getElementById('inv-name')?.value.trim() || '';
@@ -5346,7 +5403,8 @@ function editInventoryProduct(prodId) {
   const p = state.inventory.find(item => item._id === prodId);
   if (!p) return;
 
-  document.getElementById('inv-prod-id').value = p._id;
+  const idEl = document.getElementById('inv-prod-id');
+  if (idEl) idEl.value = p._id;
   document.getElementById('inv-name').value = p.name;
   document.getElementById('inv-category').value = p.category || 'Bar & Bebidas';
   document.getElementById('inv-qty').value = p.quantity;
@@ -5379,11 +5437,15 @@ async function deleteInventoryProduct(prodId) {
   renderAdminInventory();
 }
 
+async function registerInventoryMovementAdmin() {
+  return moveInventoryStock();
+}
+
 async function moveInventoryStock() {
   const prodId = document.getElementById('inv-mov-product')?.value;
   const type = document.getElementById('inv-mov-type')?.value || 'out_sale';
   const qty = parseInt(document.getElementById('inv-mov-qty')?.value || '1', 10);
-  const reason = document.getElementById('inv-mov-reason')?.value.trim() || '';
+  const reason = (document.getElementById('inv-mov-note') || document.getElementById('inv-mov-reason'))?.value.trim() || '';
 
   const prod = state.inventory.find(p => p._id === prodId);
   if (!prod || isNaN(qty) || qty <= 0) {
@@ -5456,7 +5518,7 @@ async function moveInventoryStock() {
     });
   }
 
-  const rInput = document.getElementById('inv-mov-reason');
+  const rInput = document.getElementById('inv-mov-note') || document.getElementById('inv-mov-reason');
   if (rInput) rInput.value = '';
 
   persistLocalData();
@@ -5711,12 +5773,11 @@ function renderAdminWaitlist() {
 }
 
 // ========================================================
-// 10. MÓDULO: MENSAGENS DE RETORNO AUTOMÁTICAS, PESQUISA DE SATISFAÇÃO & PROGRAMA DE FIDELIDADE
+// 10. MÓDULO: MENSAGENS DE RETORNO AUTOMÁTICAS & PESQUISA DE SATISFAÇÃO
 // ========================================================
 function renderAdminCrm() {
   renderAdminReturnRules();
   renderAdminSatisfactionReviews();
-  renderAdminLoyalty();
 }
 
 function renderAdminReturnRules() {
@@ -5810,9 +5871,9 @@ async function triggerReturnMessagesNow() {
 }
 
 // --- PESQUISA DE SATISFAÇÃO ---
-function toggleSatisfactionEnabled() {
-  const chk = document.getElementById('crm-satisfaction-enabled');
-  state.satisfactionEnabled = chk ? Boolean(chk.checked) : true;
+function toggleSatisfactionEnabled(checkedVal) {
+  const chk = document.getElementById('admin-satisfaction-toggle') || document.getElementById('crm-satisfaction-enabled');
+  state.satisfactionEnabled = typeof checkedVal === 'boolean' ? checkedVal : (chk ? Boolean(chk.checked) : true);
   persistLocalData();
 }
 
@@ -5821,8 +5882,8 @@ function openSatisfactionModal(appId) {
   if (!app) return;
 
   const modal = document.getElementById('modal-satisfaction-survey');
-  const idInp = document.getElementById('survey-appointment-id');
-  const infoEl = document.getElementById('survey-service-info');
+  const idInp = document.getElementById('survey-app-id') || document.getElementById('survey-appointment-id');
+  const infoEl = document.getElementById('survey-service-subtitle') || document.getElementById('survey-service-info');
   const commentEl = document.getElementById('survey-comment');
 
   if (idInp) idInp.value = app._id;
@@ -5840,17 +5901,17 @@ function closeSatisfactionModal() {
 
 function selectSurveyRating(stars) {
   state.surveyCurrentRating = stars;
-  document.querySelectorAll('#survey-stars-row .survey-star-btn').forEach((btn, idx) => {
+  document.querySelectorAll('#survey-stars-row button').forEach((btn, idx) => {
     if (idx < stars) {
-      btn.className = 'survey-star-btn text-2xl text-amber-400 hover:scale-110 transition';
+      btn.className = 'survey-star text-2xl text-amber-400 hover:scale-110 transition';
     } else {
-      btn.className = 'survey-star-btn text-2xl text-zinc-600 hover:scale-110 transition';
+      btn.className = 'survey-star text-2xl text-zinc-600 hover:scale-110 transition';
     }
   });
 }
 
 async function submitSatisfactionSurvey() {
-  const appId = document.getElementById('survey-appointment-id')?.value;
+  const appId = (document.getElementById('survey-app-id') || document.getElementById('survey-appointment-id'))?.value;
   const comment = document.getElementById('survey-comment')?.value.trim() || 'Excelente atendimento!';
   const app = state.appointments.find(a => a._id === appId);
   const user = state.currentUser;
@@ -5869,10 +5930,6 @@ async function submitSatisfactionSurvey() {
 
   state.reviews.unshift(newRev);
 
-  if (user) {
-    awardLoyaltyPoints(user._id, user.name, user.email, 5, 'Bônus por responder Pesquisa de Satisfação');
-  }
-
   persistLocalData();
   closeSatisfactionModal();
   loadMyBookings();
@@ -5880,16 +5937,16 @@ async function submitSatisfactionSurvey() {
   renderHomeActivePromoBanner();
 
   await showLuxAlert({
-    title: 'Avaliação Enviada! (+5 Pontos)',
-    message: 'Muito obrigado pelo seu feedback! Sua resposta ajuda a manter nossa excelência e você ganhou +5 pontos no Programa de Fidelidade.',
+    title: 'Avaliação Enviada!',
+    message: 'Muito obrigado pelo seu feedback! Sua resposta ajuda a manter nossa excelência.',
     type: 'success'
   });
 }
 
 function renderAdminSatisfactionReviews() {
-  const avgScoreEl = document.getElementById('crm-avg-score');
+  const avgScoreEl = document.getElementById('admin-satisfaction-avg-label') || document.getElementById('crm-avg-score');
   const totalRevEl = document.getElementById('crm-total-reviews');
-  const chkEl = document.getElementById('crm-satisfaction-enabled');
+  const chkEl = document.getElementById('admin-satisfaction-toggle') || document.getElementById('crm-satisfaction-enabled');
   const listEl = document.getElementById('admin-reviews-list');
 
   if (chkEl) chkEl.checked = Boolean(state.satisfactionEnabled);
@@ -5899,7 +5956,7 @@ function renderAdminSatisfactionReviews() {
     ? (revs.reduce((acc, r) => acc + Number(r.rating || 5), 0) / revs.length).toFixed(1)
     : '5.0';
 
-  if (avgScoreEl) avgScoreEl.textContent = `${avg} ⭐`;
+  if (avgScoreEl) avgScoreEl.textContent = `Média: ${avg} ⭐ (${revs.length} avaliações)`;
   if (totalRevEl) totalRevEl.textContent = `${revs.length} avaliação(ões) recebida(s)`;
   if (!listEl) return;
 
@@ -5926,159 +5983,10 @@ function renderAdminSatisfactionReviews() {
   }).join('');
 }
 
-// --- PROGRAMA DE FIDELIDADE (PONTOS, PRÊMIOS E RESGATES) ---
-function renderAdminLoyalty() {
-  const ptsSvcEl = document.getElementById('loy-pts-per-service');
-  const pts10El = document.getElementById('loy-pts-per-10reais');
-  const rewListEl = document.getElementById('admin-loyalty-rewards-list');
-  const redListEl = document.getElementById('admin-loyalty-redemptions-list');
-
-  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
-
-  if (ptsSvcEl) ptsSvcEl.value = state.loyalty.pointsPerService || 10;
-  if (pts10El) pts10El.value = state.loyalty.pointsPer10Reais || 1;
-
-  if (rewListEl) {
-    const rewards = state.loyalty.rewards || [];
-    rewListEl.innerHTML = rewards.map(rw => `
-      <div class="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between text-xs">
-        <div>
-          <span class="font-extrabold text-white block">${rw.title}</span>
-          <span class="text-[10px] text-[#e5a769] font-bold"><i class="fa-solid fa-crown mr-1"></i>${rw.pointsCost} pontos • ${rw.category || 'Prêmio'}</span>
-        </div>
-        <button type="button" onclick="deleteLoyaltyRewardAdmin('${rw._id}')" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
-          <i class="fa-regular fa-trash-can text-[10px]"></i>
-        </button>
-      </div>
-    `).join('');
-  }
-
-  if (redListEl) {
-    const reds = state.loyalty.redemptions || [];
-    if (reds.length === 0) {
-      redListEl.innerHTML = `<div class="p-3 text-center text-[11px] text-zinc-500">Nenhum resgate solicitado ainda.</div>`;
-    } else {
-      redListEl.innerHTML = reds.map(rd => `
-        <div class="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between text-xs">
-          <div>
-            <span class="font-extrabold text-white block">${rd.clientName} → <span class="text-[#e5a769]">${rd.rewardTitle}</span></span>
-            <span class="text-[10px] text-zinc-400">${rd.pointsCost} pts • ${rd.date}</span>
-          </div>
-          <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-            Resgatado
-          </span>
-        </div>
-      `).join('');
-    }
-  }
-}
-
-async function saveLoyaltyConfigAdmin() {
-  const ptsSvc = parseInt(document.getElementById('loy-pts-per-service')?.value || '10', 10);
-  const pts10 = parseInt(document.getElementById('loy-pts-per-10reais')?.value || '1', 10);
-
-  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
-  state.loyalty.pointsPerService = isNaN(ptsSvc) ? 10 : ptsSvc;
-  state.loyalty.pointsPer10Reais = isNaN(pts10) ? 1 : pts10;
-
-  persistLocalData();
-  await showLuxAlert({
-    title: 'Regras de Fidelidade Salvas!',
-    message: `Clientes agora ganham ${state.loyalty.pointsPerService} pontos por atendimento concluído + ${state.loyalty.pointsPer10Reais} ponto(s) a cada R$ 10 gastos.`,
-    type: 'success'
-  });
-}
-
-async function addLoyaltyRewardAdmin() {
-  const title = document.getElementById('loy-reward-title')?.value.trim() || '';
-  const pointsCost = parseInt(document.getElementById('loy-reward-cost')?.value || '50', 10);
-  const category = document.getElementById('loy-reward-category')?.value || 'Serviço';
-
-  if (!title || isNaN(pointsCost) || pointsCost <= 0) {
-    await showLuxAlert({
-      title: 'Informe o Prêmio',
-      message: 'Digite o nome do prêmio e a quantidade de pontos necessários para resgate.',
-      type: 'warning'
-    });
-    return;
-  }
-
-  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
-  state.loyalty.rewards.push({
-    _id: `rew_${Date.now()}`,
-    title,
-    pointsCost,
-    category
-  });
-
-  document.getElementById('loy-reward-title').value = '';
-  document.getElementById('loy-reward-cost').value = '';
-
-  persistLocalData();
-  renderAdminLoyalty();
-
-  await showLuxAlert({
-    title: 'Prêmio Adicionado ao Catálogo!',
-    message: `"${title}" (${pointsCost} pontos) já está disponível para resgate na aba Fidelidade do cliente.`,
-    type: 'success'
-  });
-}
-
-async function deleteLoyaltyRewardAdmin(rewId) {
-  if (!state.loyalty || !Array.isArray(state.loyalty.rewards)) return;
-  state.loyalty.rewards = state.loyalty.rewards.filter(r => r._id !== rewId);
-  persistLocalData();
-  renderAdminLoyalty();
-}
-
 function renderClientLoyaltyAndPackages() {
   const user = state.currentUser;
-  const ptsEl = document.getElementById('client-loyalty-points-big');
-  const nextTextEl = document.getElementById('client-loyalty-next-reward-text');
-  const barEl = document.getElementById('client-loyalty-progress-bar');
-  const rewardsGrid = document.getElementById('client-loyalty-rewards-grid');
   const myPkgsList = document.getElementById('client-my-packages-list');
   const availPkgsList = document.getElementById('client-available-packages-list');
-  const historyList = document.getElementById('client-loyalty-history-list');
-
-  const userPts = getUserLoyaltyPoints(user);
-  if (ptsEl) ptsEl.textContent = userPts;
-
-  const rewards = (state.loyalty?.rewards || []).slice().sort((a, b) => a.pointsCost - b.pointsCost);
-  const nextReward = rewards.find(r => r.pointsCost > userPts) || rewards[rewards.length - 1];
-
-  if (nextReward) {
-    const pct = Math.min(100, Math.round((userPts / nextReward.pointsCost) * 100));
-    if (barEl) barEl.style.width = `${pct}%`;
-    if (nextTextEl) {
-      nextTextEl.textContent = userPts >= nextReward.pointsCost
-        ? `🎉 Você já tem pontos suficientes para resgatar "${nextReward.title}"!`
-        : `Faltam ${nextReward.pointsCost - userPts} pontos para resgatar "${nextReward.title}"`;
-    }
-  }
-
-  // Catálogo de Prêmios para Resgate
-  if (rewardsGrid) {
-    rewardsGrid.innerHTML = rewards.map(rw => {
-      const canRedeem = userPts >= rw.pointsCost;
-      return `
-        <div class="p-3.5 rounded-2xl bg-[#11131a] border ${canRedeem ? 'border-[#e5a769]/50' : 'border-white/[0.06]'} flex items-center justify-between text-xs">
-          <div class="min-w-0 pr-2">
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 font-semibold">${rw.category || 'Prêmio'}</span>
-            <h5 class="font-extrabold text-white text-xs md:text-sm mt-1">${rw.title}</h5>
-            <span class="text-[11px] font-black text-[#e5a769] block mt-0.5"><i class="fa-solid fa-crown mr-1"></i>${rw.pointsCost} pontos</span>
-          </div>
-          <button type="button" onclick="redeemLoyaltyReward('${rw._id}')" class="px-3.5 py-2 rounded-xl text-[10px] font-extrabold shrink-0 transition ${
-            canRedeem
-              ? 'btn-lux-primary shadow-md'
-              : 'bg-zinc-800/80 text-zinc-500 border border-white/[0.05]'
-          }">
-            ${canRedeem ? 'Resgatar Prêmio' : `Faltam ${rw.pointsCost - userPts} pts`}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
 
   // Meus Pacotes Ativos (Sessões Utilizadas x Compradas)
   if (myPkgsList) {
@@ -6145,96 +6053,5 @@ function renderClientLoyaltyAndPackages() {
       `;
     }).join('');
   }
-
-  // Extrato de Pontos & Resgates do Cliente
-  if (historyList) {
-    const myHist = user
-      ? (state.loyalty?.history || []).filter(h => h.userId === user._id || (h.clientName || '').toLowerCase() === (user.name || '').toLowerCase())
-      : (state.loyalty?.history || []);
-
-    if (myHist.length === 0) {
-      historyList.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhuma movimentação de pontos ainda.</div>`;
-    } else {
-      historyList.innerHTML = myHist.map(h => {
-        const isEarn = h.type === 'earn';
-        return `
-          <div class="p-2.5 rounded-xl bg-[#101218] border border-white/[0.05] flex items-center justify-between text-xs">
-            <div>
-              <span class="font-bold text-white block">${h.desc}</span>
-              <span class="text-[10px] text-zinc-500">${h.date}</span>
-            </div>
-            <span class="font-black ${isEarn ? 'text-emerald-400' : 'text-amber-400'}">
-              ${isEarn ? `+${h.points} pts` : `-${h.points} pts`}
-            </span>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-}
-
-async function redeemLoyaltyReward(rewId) {
-  const user = state.currentUser;
-  if (!user) {
-    await showLuxAlert({
-      title: 'Faça Login',
-      message: 'Entre na sua conta para resgatar prêmios do Programa de Fidelidade.',
-      type: 'warning'
-    });
-    return;
-  }
-
-  const rw = (state.loyalty?.rewards || []).find(r => r._id === rewId);
-  if (!rw) return;
-
-  const currentPts = getUserLoyaltyPoints(user);
-  if (currentPts < rw.pointsCost) {
-    await showLuxAlert({
-      title: 'Pontos Insuficientes',
-      message: `Você possui ${currentPts} pontos e precisa de ${rw.pointsCost} pontos para resgatar "${rw.title}". Continue agendando para acumular mais pontos!`,
-      type: 'warning'
-    });
-    return;
-  }
-
-  const ok = await showLuxConfirm({
-    title: 'Confirmar Resgate de Prêmio?',
-    message: `Deseja trocar ${rw.pointsCost} pontos por "${rw.title}" agora mesmo?`,
-    confirmText: 'Sim, Resgatar Prêmio'
-  });
-  if (!ok) return;
-
-  setUserLoyaltyPoints(user, currentPts - rw.pointsCost);
-
-  const nowStr = formatNowTimestamp();
-  state.loyalty.history.unshift({
-    _id: `lh_${Date.now()}`,
-    userId: user._id,
-    clientName: user.name,
-    type: 'redeem',
-    points: rw.pointsCost,
-    desc: `Resgate de Prêmio: ${rw.title}`,
-    date: nowStr
-  });
-
-  state.loyalty.redemptions.unshift({
-    _id: `red_${Date.now()}`,
-    userId: user._id,
-    clientName: user.name,
-    rewardId: rw._id,
-    rewardTitle: rw.title,
-    pointsCost: rw.pointsCost,
-    date: nowStr
-  });
-
-  persistLocalData();
-  updateGreeting();
-  renderClientLoyaltyAndPackages();
-
-  await showLuxAlert({
-    title: 'Prêmio Resgatado com Sucesso! 🎉',
-    message: `Seu voucher para "${rw.title}" foi gerado e já aparece no Painel da Barbearia. Basta apresentar no seu próximo atendimento!`,
-    type: 'success'
-  });
 }
 

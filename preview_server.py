@@ -319,6 +319,8 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
                 if u.get("_id") == uid or u.get("email") == uid:
                     u["name"] = body.get("name", u["name"])
                     u["phone"] = body.get("phone", u.get("phone", ""))
+                    if "avatar" in body:
+                        u["avatar"] = body["avatar"]
                     save_db(DB)
                     self.send_json({"success": True, "user": u})
                     return

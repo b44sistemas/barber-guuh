@@ -169,7 +169,7 @@ const DEFAULT_DB = {
     name: 'Guuh Barbeiro',
     slogan: 'Estilo • Confiança • Atitude',
     phone: '(11) 99999-9999',
-    address: 'Atendimento exclusivo com horário marcado',
+    address: 'Av. Paulista, 1000 - São Paulo, SP',
     openingHours: 'Todos os dias: 08:00 às 23:00'
   }
 };
@@ -318,6 +318,7 @@ app.put('/api/auth/profile', (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.phone = req.body.phone || user.phone;
+    if (req.body.avatar !== undefined) user.avatar = req.body.avatar;
     saveDB(db);
     return res.json({ user });
   }
