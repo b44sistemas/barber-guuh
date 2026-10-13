@@ -613,6 +613,47 @@ app.put('/api/admin/settings', (req, res) => {
   res.json({ settings: db.settings });
 });
 
+// ========================================================
+// NOVOS MÓDULOS: PACOTES, ESTOQUE, LISTA DE ESPERA,
+// MENSAGENS DE RETORNO, PESQUISA DE SATISFAÇÃO E FIDELIDADE
+// ========================================================
+app.get('/api/modules/sync', (req, res) => {
+  const db = loadDB();
+  res.json({
+    packages: db.packages || [],
+    clientPackages: db.clientPackages || [],
+    inventory: db.inventory || [],
+    inventoryMovements: db.inventoryMovements || [],
+    waitlist: db.waitlist || [],
+    returnRules: db.returnRules || [],
+    reviews: db.reviews || [],
+    satisfactionEnabled: db.satisfactionEnabled !== undefined ? db.satisfactionEnabled : true,
+    loyalty: db.loyalty || null
+  });
+});
+
+app.put('/api/modules/sync', (req, res) => {
+  const db = loadDB();
+  const keys = [
+    'packages',
+    'clientPackages',
+    'inventory',
+    'inventoryMovements',
+    'waitlist',
+    'returnRules',
+    'reviews',
+    'satisfactionEnabled',
+    'loyalty'
+  ];
+  keys.forEach(k => {
+    if (req.body[k] !== undefined) {
+      db[k] = req.body[k];
+    }
+  });
+  saveDB(db);
+  res.json({ ok: true });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`=========================================`);

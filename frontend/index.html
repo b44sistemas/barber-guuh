@@ -29,18 +29,15 @@
   <!-- ============================================== -->
   <div id="splash-screen" class="fixed inset-0 z-50 bg-[#0d0e12] flex flex-col items-center justify-center transition-all duration-700 ease-out h-[100dvh] max-h-[100dvh] overflow-hidden select-none">
     <div class="flex flex-col items-center text-center px-4">
-      <!-- Logo Oficial com Glow e Pulso -->
       <div class="relative mb-4">
         <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-[#e5a769]/60 shadow-[0_0_40px_rgba(229,167,105,0.3)] splash-pulse bg-zinc-900">
           <img src="/barbearia_logo.jpg" alt="Guuh Barbeiro Logo" class="w-full h-full object-cover" />
         </div>
       </div>
 
-      <!-- Nome e Subtítulo -->
       <h1 class="text-xl font-extrabold tracking-wider text-white uppercase">Guuh Barbeiro</h1>
       <p class="text-[10px] text-[#e5a769] tracking-[0.22em] uppercase mt-1 font-semibold">Estilo • Confiança • Atitude</p>
 
-      <!-- Barra de Progresso Dourada -->
       <div class="w-40 h-1 bg-zinc-900 rounded-full overflow-hidden mt-5 border border-white/5">
         <div class="h-full btn-lux-primary splash-progress-bar rounded-full"></div>
       </div>
@@ -58,8 +55,6 @@
     <!-- TELA 1: LOGIN & CADASTRO REAL (100dvh)         -->
     <!-- ============================================== -->
     <section id="view-login" class="h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col justify-between px-6 py-4 fade-soft login-bg-pattern relative w-full max-w-md mx-auto md:my-auto md:rounded-3xl">
-      
-      <!-- Bloco Centralizado: Cabeçalho Próximo ao Pop-up + Pop-up de Login -->
       <div class="my-auto space-y-3">
         <!-- Cabeçalho Superior Próximo ao Pop-up -->
         <div class="pt-1 pl-1">
@@ -86,12 +81,9 @@
             <p id="auth-subtitle" class="text-[11px] text-zinc-400 mt-0.5">Acesse sua conta para continuar</p>
           </div>
 
-          <!-- Mensagem de Erro / Alerta de Validação -->
           <div id="auth-error-msg" class="hidden p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-[11px] text-red-300 font-medium"></div>
 
-          <!-- Campos do Formulário -->
           <div class="space-y-3">
-            <!-- Nome (Visível apenas ao Criar Conta) -->
             <div id="auth-field-name" class="hidden">
               <label class="block text-[10px] font-medium text-zinc-300 mb-1">Seu Nome Completo</label>
               <div class="relative">
@@ -100,7 +92,6 @@
               </div>
             </div>
 
-            <!-- Celular / WhatsApp (Visível apenas ao Criar Conta) -->
             <div id="auth-field-phone" class="hidden">
               <label class="block text-[10px] font-medium text-zinc-300 mb-1">Seu WhatsApp</label>
               <div class="relative">
@@ -109,7 +100,6 @@
               </div>
             </div>
 
-            <!-- E-mail -->
             <div>
               <label class="block text-[10px] font-medium text-zinc-300 mb-1">E-mail</label>
               <div class="relative">
@@ -118,7 +108,6 @@
               </div>
             </div>
 
-            <!-- Senha -->
             <div>
               <label class="block text-[10px] font-medium text-zinc-300 mb-1">Senha</label>
               <div class="relative">
@@ -131,20 +120,17 @@
             </div>
           </div>
 
-          <!-- Botão Principal Entrar -->
           <button type="button" onclick="handleAuthSubmit()" class="w-full py-2.5 btn-lux-primary text-xs font-extrabold flex items-center justify-center space-x-2 shadow-lg">
             <span id="btn-auth-text">Entrar</span>
             <i class="fa-solid fa-arrow-right text-[10px]"></i>
           </button>
 
-          <!-- Divisor -->
           <div class="relative flex py-0.5 items-center">
             <div class="flex-grow border-t border-white/[0.06]"></div>
             <span class="flex-shrink mx-2.5 text-[9px] text-zinc-500 uppercase tracking-widest">ou acesse com</span>
             <div class="flex-grow border-t border-white/[0.06]"></div>
           </div>
 
-          <!-- Botão Google -->
           <button type="button" onclick="handleGoogleMockLogin()" class="w-full py-2 rounded-xl bg-[#181b22] hover:bg-[#1f232c] border border-white/[0.08] flex items-center justify-center space-x-2 transition text-xs font-semibold text-white">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
               <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
@@ -155,7 +141,6 @@
             <span>Continuar com Google</span>
           </button>
 
-          <!-- Alternador Cadastrar / Entrar -->
           <div class="text-center text-[10px] text-zinc-400">
             <span id="auth-switch-msg">Não tem uma conta?</span>
             <button id="auth-switch-btn" onclick="toggleAuthMode()" class="text-[#e5a769] font-bold hover:underline ml-1">
@@ -163,7 +148,6 @@
             </button>
           </div>
 
-          <!-- Selo de Segurança dentro do pop-up -->
           <div class="text-center text-[9px] text-zinc-500 flex items-center justify-center space-x-1.5 pt-1.5 border-t border-white/[0.05]">
             <i class="fa-solid fa-shield-halved text-emerald-400 text-[10px]"></i>
             <span>Seus dados estão protegidos</span>
@@ -188,17 +172,25 @@
           </div>
         </div>
 
-        <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-2">
           <!-- Botão Rápido Admin (Visível SOMENTE para quem tem permissão de admin) -->
           <button id="btn-header-admin" onclick="switchTab('admin')" class="hidden px-3 h-9 md:h-10 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/40 text-[#e5a769] text-[10px] md:text-xs font-extrabold items-center space-x-1.5 hover:bg-[#e5a769] hover:text-[#0d0e12] transition">
             <i class="fa-solid fa-sliders"></i>
             <span>Painel Admin</span>
           </button>
-          <!-- Sino de Notificações (Lembretes de Horário, Notícias e Promoções) -->
+
+          <!-- Botão Rápido Fidelidade & Pacotes (Mostra Pontos do Cliente) -->
+          <button onclick="switchTab('loyalty')" class="px-2.5 h-9 md:h-10 rounded-xl bg-[#16171e] border border-[#e5a769]/30 flex items-center space-x-1.5 text-[#e5a769] hover:bg-[#e5a769]/15 transition" title="Fidelidade & Pacotes">
+            <i class="fa-solid fa-gem text-xs"></i>
+            <span id="header-loyalty-points" class="text-[10px] md:text-xs font-extrabold">0 pts</span>
+          </button>
+
+          <!-- Sino de Notificações (Lembretes, Lista de Espera, Retorno e Promoções) -->
           <button onclick="openClientNotificationsModal()" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-[#e5a769] relative transition" title="Lembretes e Promoções">
             <i class="fa-regular fa-bell text-xs md:text-sm"></i>
             <span id="client-notif-badge" class="min-w-[16px] h-4 px-1 rounded-full bg-[#e5a769] text-[#0d0e12] text-[9px] font-black flex items-center justify-center absolute -top-1 -right-1 shadow-md">1</span>
           </button>
+
           <!-- Avatar Usuário no Estilo Silhueta Circular -->
           <button onclick="switchTab('profile')" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border border-white/15 hover:border-[#e5a769] transition shadow-md shrink-0">
             <img id="header-user-avatar" src="/user_avatar.svg" alt="Perfil" class="w-full h-full object-cover" />
@@ -206,7 +198,7 @@
         </div>
       </div>
 
-      <!-- Saudação + Barra de Pesquisa (Responsivo em 2 colunas no Desktop) -->
+      <!-- Saudação + Barra de Pesquisa -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div class="space-y-0.5">
           <span id="home-greeting-time" class="text-xs md:text-sm text-zinc-400 font-medium">Bom dia,</span>
@@ -219,7 +211,7 @@
         </div>
       </div>
 
-      <!-- Alerta Rápido de Promoção Ativa ou Próximo Lembrete no Topo da Home -->
+      <!-- Alerta Rápido de Promoção Ativa ou Vaga na Lista de Espera -->
       <div id="home-active-promo-alert" class="hidden"></div>
 
       <!-- Banner Promocional / Destaque Especial -->
@@ -230,10 +222,15 @@
             <span>Destaque da Semana</span>
           </span>
           <h3 class="text-sm md:text-xl font-black text-white leading-snug">Corte Degradê + Barba Terapia</h3>
-          <p class="text-[10px] md:text-xs text-zinc-400">Escolha um ou mais serviços e monte seu combo com soma automática e lembrete no app.</p>
-          <button onclick="openBookingWithCategory('Combo')" class="mt-1 py-2 px-4 md:px-6 rounded-xl btn-lux-primary text-[10px] md:text-xs font-extrabold">
-            Agendar Agora
-          </button>
+          <p class="text-[10px] md:text-xs text-zinc-400">Acumule pontos no Programa de Fidelidade a cada agendamento ou pacote adquirido!</p>
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <button onclick="openBookingWithCategory('Combo')" class="py-2 px-4 md:px-6 rounded-xl btn-lux-primary text-[10px] md:text-xs font-extrabold">
+              Agendar Agora
+            </button>
+            <button onclick="switchTab('loyalty')" class="py-2 px-3.5 rounded-xl bg-[#161822] hover:bg-[#1e212d] border border-[#e5a769]/40 text-[#e5a769] text-[10px] md:text-xs font-bold transition">
+              <i class="fa-solid fa-box-open mr-1"></i>Pacotes & Pontos
+            </button>
+          </div>
         </div>
         <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&auto=format&fit=crop&q=80" class="w-24 h-24 md:w-36 md:h-36 rounded-2xl object-cover border border-white/[0.08] shadow-xl shrink-0" />
       </div>
@@ -283,38 +280,31 @@
     </section>
 
     <!-- ============================================== -->
-    <!-- TELA 3: AGENDAMENTO DETALHE (MULTI-SERVIÇOS)   -->
+    <!-- TELA 3: AGENDAMENTO DETALHE + LISTA DE ESPERA  -->
     <!-- ============================================== -->
     <section id="view-booking" class="hidden fade-soft space-y-3.5 pb-28 w-full md:px-8 md:pt-5">
-      <!-- Imagem de Destaque do Serviço com Botão de Voltar Sobreposto -->
       <div class="relative h-44 md:h-56 w-full rounded-b-3xl md:rounded-3xl overflow-hidden border-b md:border border-white/[0.08]">
         <img id="detail-service-img" src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&auto=format&fit=crop&q=80" class="w-full h-full object-cover transition-all duration-300" />
         <div class="absolute inset-0 bg-gradient-to-t from-[#0d0e12] via-[#0d0e12]/40 to-black/60"></div>
         
-        <!-- Botão Voltar -->
         <button onclick="switchTab('home')" class="absolute top-3.5 left-4 px-3 h-8 rounded-xl bg-black/60 backdrop-blur-md border border-white/[0.12] text-white flex items-center space-x-1.5 hover:border-[#e5a769] text-xs font-semibold">
           <i class="fa-solid fa-chevron-left text-[10px]"></i>
           <span>Voltar</span>
         </button>
 
-        <!-- Contador de Serviços Selecionados no Topo Direito -->
         <div id="detail-selected-count-badge" class="absolute top-3.5 right-4 px-3 py-1 rounded-xl bg-black/70 backdrop-blur-md border border-[#e5a769]/40 text-[#e5a769] text-[10px] md:text-xs font-bold">
           1 serviço selecionado
         </div>
 
-        <!-- Informação do Serviço no Banner -->
         <div class="absolute bottom-3.5 left-4 right-4">
           <h2 id="detail-service-title" class="text-base md:text-xl font-black text-white leading-tight">Corte Degradê / Social</h2>
           <p id="detail-service-subtitle" class="text-[11px] md:text-xs text-[#e5a769] font-medium mt-0.5">Profissional: Ricardo • 35 min</p>
         </div>
       </div>
 
-      <!-- Grid Responsivo (1 coluna no Mobile, 12 colunas no Desktop) -->
       <div class="px-4 md:px-0 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-        
-        <!-- Coluna Esquerda no Desktop: Serviços + Profissional -->
+        <!-- Coluna Esquerda: Serviços + Profissional -->
         <div class="md:col-span-7 space-y-4">
-          <!-- 1. SELETOR DE SERVIÇOS (ARRASTAR E ESCOLHER MAIS DE UM) -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <div>
@@ -331,36 +321,24 @@
               </div>
             </div>
 
-            <!-- Carrossel Horizontal de Serviços com Multi-Seleção -->
-            <div id="booking-services-carousel" class="flex space-x-2.5 overflow-x-auto pb-1.5 pt-0.5 scroll-smooth">
-              <!-- Gerado via JS -->
-            </div>
-
-            <!-- Resumo dos Serviços Selecionados -->
-            <div id="selected-services-summary" class="lux-card-elevated p-3 space-y-1.5">
-              <!-- Gerado via JS -->
-            </div>
+            <div id="booking-services-carousel" class="flex space-x-2.5 overflow-x-auto pb-1.5 pt-0.5 scroll-smooth"></div>
+            <div id="selected-services-summary" class="lux-card-elevated p-3 space-y-1.5"></div>
           </div>
 
-          <!-- 2. ESCOLHA O BARBEIRO -->
           <div class="space-y-1.5">
             <h4 class="text-xs md:text-sm font-bold text-white">2. Profissional</h4>
-            <div id="booking-barbers-row" class="space-y-2">
-              <!-- Gerado via JS -->
-            </div>
+            <div id="booking-barbers-row" class="space-y-2"></div>
           </div>
         </div>
 
-        <!-- Coluna Direita no Desktop: Calendário + Horários + Lembrete -->
+        <!-- Coluna Direita: Calendário + Horários + Lista de Espera -->
         <div class="md:col-span-5 space-y-3.5">
-          <!-- 3. ESCOLHA O DIA (COM CALENDARIOZINHO INTERATIVO) -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <h4 class="text-xs md:text-sm font-bold text-white">3. Escolha o Dia</h4>
               <span id="booking-day-schedule-tag" class="text-[9px] text-emerald-400 font-semibold">Jornada Automática</span>
             </div>
 
-            <!-- Botão que abre/fecha o Calendariozinho -->
             <button type="button" onclick="toggleMiniCalendar()" class="w-full lux-card-elevated p-3 flex items-center justify-between hover:border-[#e5a769]/50 transition">
               <div class="flex items-center space-x-2.5">
                 <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 flex items-center justify-center text-[#e5a769]">
@@ -377,7 +355,6 @@
               </div>
             </button>
 
-            <!-- Calendariozinho Mensal Expansível -->
             <div id="mini-calendar-box" class="hidden lux-card p-3.5 space-y-2.5 border border-[#e5a769]/30 fade-soft">
               <div class="flex items-center justify-between pb-1 border-b border-white/[0.08]">
                 <button type="button" onclick="changeCalendarMonth(-1)" class="w-7 h-7 rounded-lg bg-[#16171e] border border-white/[0.08] text-zinc-300 hover:text-white flex items-center justify-center text-xs">
@@ -389,21 +366,11 @@
                 </button>
               </div>
 
-              <!-- Cabeçalho Dias da Semana -->
               <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-zinc-500 uppercase">
-                <span>Dom</span>
-                <span>Seg</span>
-                <span>Ter</span>
-                <span>Qua</span>
-                <span>Qui</span>
-                <span>Sex</span>
-                <span>Sáb</span>
+                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
               </div>
 
-              <!-- Grade de Dias do Mês -->
-              <div id="mini-calendar-days-grid" class="grid grid-cols-7 gap-1 text-center">
-                <!-- Gerado via JS -->
-              </div>
+              <div id="mini-calendar-days-grid" class="grid grid-cols-7 gap-1 text-center"></div>
             </div>
 
             <!-- 4. HORÁRIOS LIVRES -->
@@ -412,20 +379,44 @@
                 <span class="text-xs md:text-sm font-bold text-white">4. Escolha o Horário</span>
                 <span id="detail-selected-date-label" class="text-[10px] text-[#e5a769] font-semibold">Hoje</span>
               </div>
-              <div id="booking-slots-grid" class="grid grid-cols-4 gap-2">
-                <!-- Gerado via JS -->
+              <div id="booking-slots-grid" class="grid grid-cols-4 gap-2"></div>
+            </div>
+
+            <!-- 5. LISTA DE ESPERA AUTOMÁTICA DO DIA -->
+            <div class="p-3.5 rounded-2xl bg-[#13151d] border border-amber-500/30 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <div class="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                  </div>
+                  <div>
+                    <span class="font-extrabold text-white block leading-tight">Horário ocupado ou agenda cheia?</span>
+                    <span class="text-[10px] text-zinc-400">Entre na Lista de Espera deste dia e seja avisado automaticamente se vagar!</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 pt-0.5">
+                <select id="waitlist-pref-shift" class="flex-1 lux-input px-2.5 py-1.5 text-[11px] text-white bg-[#181a22]">
+                  <option value="Qualquer horário">Qualquer horário do dia</option>
+                  <option value="Manhã (08h-12h)">Preferência: Manhã (08h às 12h)</option>
+                  <option value="Tarde (13h-18h)">Preferência: Tarde (13h às 18h)</option>
+                  <option value="Noite (19h-23h)">Preferência: Noite (19h às 23h)</option>
+                </select>
+                <button type="button" onclick="joinWaitlistForSelectedDate()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[10px] font-extrabold shrink-0 transition">
+                  + Lista de Espera
+                </button>
               </div>
             </div>
 
-            <!-- 5. LEMBRETE AUTOMÁTICO (PUSH + E-MAIL) -->
+            <!-- 6. LEMBRETE AUTOMÁTICO (PUSH + E-MAIL) -->
             <div class="p-3 rounded-2xl bg-[#13151d] border border-[#e5a769]/25 flex items-center justify-between text-[11px]">
               <div class="flex items-center space-x-2.5">
                 <div class="w-7 h-7 rounded-lg bg-[#e5a769]/15 text-[#e5a769] flex items-center justify-center text-xs">
                   <i class="fa-solid fa-bell"></i>
                 </div>
                 <div>
-                  <span class="font-bold text-white block leading-tight">Lembrete Automático Ativo</span>
-                  <span id="booking-reminder-info-text" class="text-[10px] text-zinc-400">Você receberá Push no App + E-mail antes do horário</span>
+                  <span class="font-bold text-white block leading-tight">Lembrete Automático + Pontos Fidelidade</span>
+                  <span id="booking-reminder-info-text" class="text-[10px] text-zinc-400">Push no App + E-mail antes do horário</span>
                 </div>
               </div>
               <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
@@ -434,7 +425,6 @@
         </div>
       </div>
 
-      <!-- Barra Inferior Fixa com Preço Somado e Botão "Confirmar Horário" -->
       <div class="fixed bottom-0 left-0 right-0 z-40 bg-[#0d0e12]/95 backdrop-blur-lg border-t border-white/[0.08] px-4 md:px-8 py-3 flex justify-center">
         <div class="w-full max-w-md md:max-w-5xl lg:max-w-6xl flex items-center justify-between">
           <div>
@@ -449,7 +439,7 @@
     </section>
 
     <!-- ============================================== -->
-    <!-- TELA 4: MINHA AGENDA (COM DASHBOARD DO CLIENTE)-->
+    <!-- TELA 4: MINHA AGENDA, ESPERA & AVALIAÇÃO       -->
     <!-- ============================================== -->
     <section id="view-my-bookings" class="hidden fade-soft px-4 md:px-8 py-3 md:py-6 space-y-4 pb-28 w-full">
       <div class="flex items-center justify-between pt-1">
@@ -458,8 +448,8 @@
             <i class="fa-regular fa-calendar-check"></i>
           </div>
           <div>
-            <h3 class="text-sm md:text-lg font-extrabold text-white tracking-tight">Minha Agenda</h3>
-            <p class="text-[10px] md:text-xs text-zinc-400">Seus horários com lembretes automáticos via Push e E-mail</p>
+            <h3 class="text-sm md:text-lg font-extrabold text-white tracking-tight">Minha Agenda & Espera</h3>
+            <p class="text-[10px] md:text-xs text-zinc-400">Seus horários, lista de espera e pesquisa de satisfação</p>
           </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -498,15 +488,18 @@
 
         <div class="admin-stat-card p-3 md:p-4 flex flex-col justify-between border-[#e5a769]/25">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-[9px] md:text-[11px] font-bold text-[#e5a769] uppercase">Total</span>
+            <span class="text-[9px] md:text-[11px] font-bold text-[#e5a769] uppercase">Fidelidade</span>
             <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-[#e5a769]/20 text-[#e5a769] flex items-center justify-center text-[10px] md:text-xs">
-              <i class="fa-solid fa-scissors"></i>
+              <i class="fa-solid fa-gem"></i>
             </div>
           </div>
           <span id="client-stat-total-spent" class="text-base md:text-2xl font-black text-[#e5a769]">R$ 0</span>
-          <span class="text-[9px] md:text-[10px] text-zinc-500">Em serviços</span>
+          <span class="text-[9px] md:text-[10px] text-zinc-500">Investidos no visual</span>
         </div>
       </div>
+
+      <!-- Minha Lista de Espera Ativa (se houver) -->
+      <div id="client-waitlist-container" class="hidden space-y-2"></div>
 
       <!-- Filtros Rápidos da Agenda do Cliente -->
       <div class="flex items-center space-x-2">
@@ -517,18 +510,109 @@
           Confirmados
         </button>
         <button onclick="setClientBookingFilter('completed')" id="client-filter-completed" class="px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-bold bg-[#16171e] text-zinc-400 hover:text-white border border-white/[0.06] transition">
-          Concluídos
+          Concluídos (Avaliar ⭐)
         </button>
       </div>
 
       <!-- Lista de Agendamentos do Cliente -->
-      <div id="client-bookings-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-        <!-- Preenchido via JS apenas com os horários do usuário logado -->
+      <div id="client-bookings-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1"></div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TELA 5: FIDELIDADE & PACOTES DO CLIENTE        -->
+    <!-- (Pontos/Milhas, Extrato, Resgate e Sessões)    -->
+    <!-- ============================================== -->
+    <section id="view-loyalty" class="hidden fade-soft px-4 md:px-8 py-3 md:py-6 space-y-5 pb-28 w-full">
+      <div class="flex items-center justify-between pt-1">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-sm">
+            <i class="fa-solid fa-gem"></i>
+          </div>
+          <div>
+            <h3 class="text-sm md:text-lg font-extrabold text-white tracking-tight">Programa de Fidelidade & Pacotes</h3>
+            <p class="text-[10px] md:text-xs text-zinc-400">Acumule pontos para trocar por prêmios e acompanhe as sessões dos seus pacotes</p>
+          </div>
+        </div>
+        <button onclick="switchTab('home')" class="px-3 py-1.5 rounded-xl bg-[#16171e] border border-white/[0.08] text-xs text-zinc-300 hover:text-white font-semibold">
+          ← Início
+        </button>
+      </div>
+
+      <!-- Cartão Digital do Programa de Fidelidade (Estilo Milhas/Cartão Black) -->
+      <div class="lux-card-elevated p-5 border-[#e5a769]/35 bg-gradient-to-r from-[#161822] via-[#1f1b17] to-[#292016] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1.5">
+          <span class="text-[10px] uppercase tracking-widest text-[#e5a769] font-extrabold inline-flex items-center space-x-1.5">
+            <i class="fa-solid fa-crown"></i>
+            <span>Guuh Barbeiro Rewards • Programa de Pontos</span>
+          </span>
+          <div class="flex items-baseline space-x-2">
+            <span id="client-loyalty-balance" class="text-3xl md:text-4xl font-black text-white">0</span>
+            <span class="text-xs font-extrabold text-[#e5a769] uppercase">Pontos Disponíveis</span>
+          </div>
+          <p id="client-loyalty-rule-text" class="text-[11px] text-zinc-300">
+            Acumule pontos automaticamente a cada serviço realizado ou produto consumido na barbearia!
+          </p>
+        </div>
+        <div class="flex flex-col items-start md:items-end space-y-1 text-xs">
+          <span class="text-[10px] text-zinc-400">Titular do Cartão Fidelidade:</span>
+          <span id="client-loyalty-holder" class="font-extrabold text-white text-sm">Cliente</span>
+          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Pontos Nunca Expiram</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+        <!-- Coluna Esquerda: PACOTES DE SERVIÇOS E PRODUTOS (Meus Pacotes + Comprar Pacote) -->
+        <div class="md:col-span-6 space-y-4">
+          <!-- Meus Pacotes Ativos (Sessões Utilizadas x Compradas) -->
+          <div class="admin-section-card p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-box-open text-[#e5a769] text-xs"></i>
+                <h4 class="text-xs md:text-sm font-extrabold text-white">Meus Pacotes (Sessões Utilizadas x Compradas)</h4>
+              </div>
+              <span class="text-[10px] text-emerald-400 font-bold">Transparência Total</span>
+            </div>
+            <div id="client-active-packages-list" class="space-y-2.5"></div>
+          </div>
+
+          <!-- Vitrine de Pacotes com Desconto para Adquirir -->
+          <div class="admin-section-card p-4 space-y-3">
+            <div>
+              <h4 class="text-xs md:text-sm font-extrabold text-white">Adquirir Pacotes com Desconto</h4>
+              <p class="text-[10px] text-zinc-400">Garanta várias sessões com desconto especial e ganhe pontos de fidelidade extras</p>
+            </div>
+            <div id="client-available-packages-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: RESGATE DE PRÊMIOS + EXTRATO DE PONTOS -->
+        <div class="md:col-span-6 space-y-4">
+          <!-- Catálogo de Prêmios para Resgate pelo App -->
+          <div class="admin-section-card p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-xs md:text-sm font-extrabold text-white">Trocar Meus Pontos por Serviços e Produtos</h4>
+                <p class="text-[10px] text-zinc-400">Solicite o resgate direto pelo aplicativo</p>
+              </div>
+              <i class="fa-solid fa-gift text-[#e5a769] text-sm"></i>
+            </div>
+            <div id="client-loyalty-rewards-list" class="space-y-2"></div>
+          </div>
+
+          <!-- Extrato de Pontos & Histórico de Resgates do Cliente -->
+          <div class="admin-section-card p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs md:text-sm font-extrabold text-white">Meu Extrato de Pontos & Resgates</h4>
+              <span class="text-[10px] text-zinc-400">Histórico detalhado</span>
+            </div>
+            <div id="client-loyalty-statement-list" class="space-y-2"></div>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- ============================================== -->
-    <!-- TELA 5: SOBRE A BARBEARIA (SEM BOTÃO SAIR)     -->
+    <!-- TELA 6: SOBRE A BARBEARIA (SEM BOTÃO SAIR)     -->
     <!-- ============================================== -->
     <section id="view-about" class="hidden fade-soft px-4 md:px-8 py-3 md:py-6 space-y-4 pb-28 w-full max-w-2xl mx-auto">
       <div class="flex items-center justify-between pt-1">
@@ -566,7 +650,7 @@
     </section>
 
     <!-- ============================================== -->
-    <!-- TELA 6: PERFIL DO USUÁRIO (COM SAIR DA CONTA)  -->
+    <!-- TELA 7: PERFIL DO USUÁRIO (COM SAIR DA CONTA)  -->
     <!-- ============================================== -->
     <section id="view-profile" class="hidden fade-soft px-4 md:px-8 py-3 md:py-6 space-y-4 pb-28 w-full max-w-xl mx-auto">
       <div class="flex items-center justify-between pt-1">
@@ -574,7 +658,6 @@
         <button onclick="switchTab('home')" class="text-xs text-[#e5a769] font-semibold">← Voltar</button>
       </div>
 
-      <!-- Card Dados do Usuário com Avatar no Estilo Silhueta Circular -->
       <div class="lux-card p-5 space-y-4">
         <div class="flex items-center space-x-3.5 pb-3.5 border-b border-white/[0.08]">
           <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/15 shadow-lg shrink-0">
@@ -589,7 +672,6 @@
           </div>
         </div>
 
-        <!-- Editar Dados Rápidos -->
         <div class="space-y-3 text-xs">
           <div>
             <label class="block text-[10px] font-semibold text-zinc-400 mb-1">Seu Nome</label>
@@ -604,14 +686,12 @@
           </button>
         </div>
 
-        <!-- Acesso Restrito ao Painel do Administrador (Oculto para clientes comuns!) & Sair da Conta -->
         <div class="pt-2 border-t border-white/[0.08] space-y-2.5">
           <button id="btn-profile-admin" onclick="switchTab('admin')" class="hidden w-full py-2.5 rounded-xl bg-gradient-to-r from-[#e5a769]/20 to-[#cf853c]/20 border border-[#e5a769]/40 text-[#e5a769] text-xs font-extrabold items-center justify-center space-x-2 hover:bg-[#e5a769]/30 transition">
             <i class="fa-solid fa-sliders"></i>
             <span>Acessar Painel do Administrador</span>
           </button>
 
-          <!-- Botão Sair da Conta -->
           <button onclick="handleLogout()" class="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 text-xs font-bold hover:bg-red-500/20 transition flex items-center justify-center space-x-1.5">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Sair da Conta</span>
@@ -621,7 +701,7 @@
     </section>
 
     <!-- ============================================== -->
-    <!-- TELA 7: PAINEL DO ADMINISTRADOR (DESKTOP APP)  -->
+    <!-- TELA 8: PAINEL DO ADMINISTRADOR COMPLETO       -->
     <!-- ============================================== -->
     <section id="view-admin" class="hidden fade-soft px-4 md:px-8 py-3 md:py-6 space-y-4 md:space-y-6 pb-28 w-full">
       <!-- Banner Executivo do Painel Admin -->
@@ -633,11 +713,11 @@
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-[9px] md:text-[10px] uppercase tracking-widest font-extrabold text-[#e5a769]">Central de Comando • SaaS</span>
+              <span class="text-[9px] md:text-[10px] uppercase tracking-widest font-extrabold text-[#e5a769]">Central de Comando • SaaS Completo</span>
               <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Online</span>
             </div>
             <h3 class="text-base md:text-xl font-black text-white leading-tight mt-0.5">Painel Administrativo • Guuh Barbeiro</h3>
-            <p class="text-[10px] md:text-xs text-zinc-400 mt-0.5">Lembretes Push/SMS, Jornada Flexível & Encaixes, Financeiro, Promoções e Relatórios BI</p>
+            <p class="text-[10px] md:text-xs text-zinc-400 mt-0.5">Agenda, Pacotes, Estoque (Bar & Cosméticos), Lista de Espera, Retorno, Satisfação, Fidelidade & BI</p>
           </div>
         </div>
         <div class="flex items-center space-x-2 self-end sm:self-center">
@@ -652,47 +732,58 @@
         </div>
       </div>
 
-      <!-- Menu de 8 Abas do Administrador (Responsivo 4x2 no Mobile / 8 colunas no Desktop) -->
-      <div class="grid grid-cols-4 md:grid-cols-8 gap-1.5 md:gap-2 bg-[#111318] p-1.5 md:p-2 rounded-2xl border border-white/[0.07] shadow-inner">
-        <button onclick="switchAdminSubTab('agenda')" id="admin-tab-btn-agenda" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold bg-[#e5a769] text-[#0d0e12] shadow-md transition flex flex-col items-center justify-center space-y-0.5">
+      <!-- Menu de 11 Abas do Administrador (Grid 4 colunas no Mobile / 11 colunas no Desktop) -->
+      <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 gap-1.5 bg-[#111318] p-1.5 md:p-2 rounded-2xl border border-white/[0.07] shadow-inner">
+        <button onclick="switchAdminSubTab('agenda')" id="admin-tab-btn-agenda" class="py-2 px-1 rounded-xl text-[10px] font-bold bg-[#e5a769] text-[#0d0e12] shadow-md transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-calendar-check text-xs"></i>
           <span>Agenda</span>
         </button>
-        <button onclick="switchAdminSubTab('services')" id="admin-tab-btn-services" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('services')" id="admin-tab-btn-services" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-scissors text-xs"></i>
           <span>Serviços</span>
         </button>
-        <button onclick="switchAdminSubTab('barbers')" id="admin-tab-btn-barbers" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('packages')" id="admin-tab-btn-packages" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-box-open text-xs"></i>
+          <span>Pacotes</span>
+        </button>
+        <button onclick="switchAdminSubTab('inventory')" id="admin-tab-btn-inventory" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-boxes-stacked text-xs"></i>
+          <span>Estoque</span>
+        </button>
+        <button onclick="switchAdminSubTab('barbers')" id="admin-tab-btn-barbers" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-user-clock text-xs"></i>
           <span>Jornada</span>
         </button>
-        <button onclick="switchAdminSubTab('finance')" id="admin-tab-btn-finance" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('finance')" id="admin-tab-btn-finance" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-wallet text-xs"></i>
           <span>Financeiro</span>
         </button>
-        <button onclick="switchAdminSubTab('promotions')" id="admin-tab-btn-promotions" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('crm')" id="admin-tab-btn-crm" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+          <i class="fa-solid fa-gem text-xs"></i>
+          <span>Fidelidade</span>
+        </button>
+        <button onclick="switchAdminSubTab('promotions')" id="admin-tab-btn-promotions" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-bullhorn text-xs"></i>
           <span>Promoções</span>
         </button>
-        <button onclick="switchAdminSubTab('reports')" id="admin-tab-btn-reports" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('reports')" id="admin-tab-btn-reports" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-chart-column text-xs"></i>
           <span>Relatórios</span>
         </button>
-        <button onclick="switchAdminSubTab('users')" id="admin-tab-btn-users" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('users')" id="admin-tab-btn-users" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-user-shield text-xs"></i>
           <span>Acessos</span>
         </button>
-        <button onclick="switchAdminSubTab('settings')" id="admin-tab-btn-settings" class="py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
+        <button onclick="switchAdminSubTab('settings')" id="admin-tab-btn-settings" class="py-2 px-1 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5">
           <i class="fa-solid fa-store text-xs"></i>
           <span>Barbearia</span>
         </button>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 1: AGENDA AUTOMATIZADA, LEMBRETES & ENCAIXES -->
+      <!-- SUB-ABA 1: AGENDA AUTOMATIZADA, LEMBRETES & ESPERA   -->
       <!-- ==================================================== -->
       <div id="admin-sub-agenda" class="space-y-4">
-        <!-- 4 Cards de KPIs Executivos -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
           <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-1.5">
@@ -729,19 +820,18 @@
 
           <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[9px] md:text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Lembretes & Clientes</span>
-              <div class="w-7 h-7 md:w-9 md:h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs md:text-sm">
-                <i class="fa-solid fa-bell"></i>
+              <span class="text-[9px] md:text-[11px] font-bold text-amber-400 uppercase tracking-wider">Lista de Espera</span>
+              <div class="w-7 h-7 md:w-9 md:h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-xs md:text-sm">
+                <i class="fa-solid fa-hourglass-half"></i>
               </div>
             </div>
-            <span id="admin-stat-users" class="text-lg md:text-2xl font-black text-sky-400">0</span>
-            <span class="text-[9px] md:text-[11px] text-zinc-500">Notificações ativas</span>
+            <span id="admin-stat-waitlist" class="text-lg md:text-2xl font-black text-amber-400">0</span>
+            <span class="text-[9px] md:text-[11px] text-zinc-500">Aviso automático ao vagar</span>
           </div>
         </div>
 
         <!-- Mini-Dashboard Visual + Configuração de Lembretes de Horários -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <!-- Gráfico de Serviços Mais Agendados -->
           <div class="md:col-span-6 admin-section-card p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -750,9 +840,7 @@
               </div>
               <span class="text-[10px] text-zinc-400">Ranking em tempo real</span>
             </div>
-            <div id="admin-dashboard-services-bars" class="space-y-2.5 pt-1">
-              <!-- Gerado via JS -->
-            </div>
+            <div id="admin-dashboard-services-bars" class="space-y-2.5 pt-1"></div>
           </div>
 
           <!-- LEMBRETE DE HORÁRIOS (CLIENTE & PROFISSIONAL: PUSH, E-MAIL, SMS) -->
@@ -814,9 +902,27 @@
           </div>
         </div>
 
-        <!-- Barra de Filtros da Agenda (Busca + Status + Data + Botão Encaixe) -->
+        <!-- LISTA DE ESPERA AUTOMÁTICA DO DIA (Admin) -->
+        <div class="admin-section-card p-4 space-y-3 border-amber-500/25">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/35 text-amber-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-hourglass-half"></i>
+              </div>
+              <div>
+                <h4 class="text-xs md:text-sm font-extrabold text-white">Lista de Espera Automática</h4>
+                <p class="text-[10px] text-zinc-400">Quando um horário vaga em determinado dia, os clientes abaixo são avisados automaticamente pelo App para agendar sem te interromper</p>
+              </div>
+            </div>
+            <span id="admin-waitlist-badge" class="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold self-start sm:self-center">
+              0 aguardando
+            </span>
+          </div>
+          <div id="admin-waitlist-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
+        </div>
+
+        <!-- Barra de Filtros da Agenda -->
         <div class="admin-section-card p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <!-- Filtros de Status -->
           <div class="flex items-center space-x-1.5 overflow-x-auto">
             <button type="button" onclick="setAdminAgendaStatusFilter('all')" id="adm-status-all" class="px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-bold bg-[#e5a769] text-[#0d0e12] transition shrink-0">
               Todos
@@ -835,7 +941,6 @@
             </button>
           </div>
 
-          <!-- Busca por Cliente, Data e Botão de Encaixe Fora do Horário -->
           <div class="flex flex-wrap items-center gap-2">
             <div class="relative flex-1 md:w-48">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-[10px]"></i>
@@ -851,10 +956,7 @@
           </div>
         </div>
 
-        <!-- Lista de Agendamentos (Grid de 2 colunas no Desktop) -->
-        <div id="admin-appointments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <!-- Renderizado via JS -->
-        </div>
+        <div id="admin-appointments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       </div>
 
       <!-- ==================================================== -->
@@ -862,8 +964,6 @@
       <!-- ==================================================== -->
       <div id="admin-sub-services" class="hidden">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          
-          <!-- Formulário Lateral no Desktop (5 colunas) -->
           <div class="md:col-span-5 admin-section-card p-4 md:p-5 space-y-3.5">
             <div class="flex items-center justify-between pb-2.5 border-b border-white/[0.07]">
               <div class="flex items-center space-x-2">
@@ -905,10 +1005,8 @@
                 </select>
               </div>
 
-              <!-- FOTO DO CORTE: ANEXAR ARQUIVO OU URL -->
               <div class="col-span-2 space-y-2 p-3 rounded-2xl bg-[#0e1015] border border-white/[0.07]">
                 <label class="block text-[10px] font-bold text-[#e5a769] uppercase tracking-wider">Foto do Serviço (Anexar ou URL)</label>
-                
                 <div class="flex items-center space-x-3">
                   <div class="w-16 h-16 rounded-2xl overflow-hidden bg-[#181a22] border border-white/10 shrink-0 flex items-center justify-center">
                     <img id="admin-svc-preview-img" src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80" class="w-full h-full object-cover" />
@@ -936,26 +1034,246 @@
             </button>
           </div>
 
-          <!-- Lista de Serviços na Direita no Desktop (7 colunas) -->
           <div class="md:col-span-7 space-y-3">
             <div class="flex items-center justify-between px-1">
               <h4 class="text-xs md:text-sm font-bold text-white uppercase tracking-wider">Catálogo Ativo no Aplicativo</h4>
               <span id="admin-services-count-badge" class="text-[10px] md:text-xs text-[#e5a769] font-bold">6 serviços</span>
             </div>
-            <div id="admin-services-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <!-- Renderizado via JS -->
-            </div>
+            <div id="admin-services-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
           </div>
-
         </div>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 3: FLEXIBILIZAÇÃO DA JORNADA & HORÁRIOS      -->
-      <!-- (Jornada por Dia da Semana + Jornada por Período)    -->
+      <!-- SUB-ABA 3: PACOTES DE SERVIÇOS E PRODUTOS            -->
+      <!-- (Sessões Utilizadas x Compradas + Fidelização)       -->
+      <!-- ==================================================== -->
+      <div id="admin-sub-packages" class="hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+          <!-- Coluna Esquerda: Criar Pacote + Vender Pacote para Cliente (5 colunas) -->
+          <div class="md:col-span-5 space-y-4">
+            <!-- Criar Novo Pacote -->
+            <div class="admin-section-card p-4 md:p-5 space-y-3 text-xs">
+              <div class="flex items-center space-x-2 pb-2 border-b border-white/[0.07]">
+                <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-box-open"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs md:text-sm font-extrabold text-white">Montar Pacote de Serviços / Produtos</h4>
+                  <span class="text-[10px] text-zinc-400 block">Fidelize clientes e antecipe receitas com desconto</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="col-span-2">
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Nome do Pacote</label>
+                  <input type="text" id="pkg-name" placeholder="Ex: Pacote Mensal 4 Cortes Degradê" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Serviços e/ou Produtos Inclusos</label>
+                  <input type="text" id="pkg-items" placeholder="Ex: 4 Cortes + 2 Barbas + 1 Pomada Matte" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Total de Sessões</label>
+                  <input type="number" id="pkg-sessions" value="4" min="1" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Pontos Fidelidade Bônus</label>
+                  <input type="number" id="pkg-points" value="40" min="0" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Valor Avulso (R$)</label>
+                  <input type="number" step="0.5" id="pkg-regular-price" placeholder="160.00" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-emerald-400 mb-1">Valor no Pacote (R$)</label>
+                  <input type="number" step="0.5" id="pkg-price" placeholder="130.00" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+              </div>
+
+              <button type="button" onclick="saveAdminPackageTemplate()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold">
+                <i class="fa-solid fa-plus mr-1"></i>Salvar Pacote no Catálogo
+              </button>
+            </div>
+
+            <!-- Vender / Atribuir Pacote a um Cliente -->
+            <div class="admin-section-card p-4 space-y-3 text-xs">
+              <div>
+                <h5 class="font-extrabold text-white text-xs">Atribuir / Vender Pacote a um Cliente</h5>
+                <span class="text-[10px] text-zinc-400">O valor entra automaticamente como receita antecipada no Caixa</span>
+              </div>
+              <div class="space-y-2">
+                <select id="assign-pkg-user" class="w-full lux-input px-3 py-2 text-xs text-white bg-[#181a20]"></select>
+                <select id="assign-pkg-template" class="w-full lux-input px-3 py-2 text-xs text-white bg-[#181a20]"></select>
+                <button type="button" onclick="assignPackageToClientAdmin()" class="w-full py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 font-extrabold text-xs">
+                  <i class="fa-solid fa-check mr-1"></i>Vender Pacote & Lançar Receita
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Controle de Sessões Utilizadas x Compradas + Pacotes Cadastrados (7 colunas) -->
+          <div class="md:col-span-7 space-y-4">
+            <div class="admin-section-card p-4 space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+                <div>
+                  <h4 class="text-xs md:text-sm font-extrabold text-white">Controle de Sessões: Utilizadas x Compradas</h4>
+                  <p class="text-[10px] text-zinc-400">Acompanhe o saldo de sessões de cada cliente com total transparência</p>
+                </div>
+                <span id="admin-client-pkgs-badge" class="text-[10px] px-2.5 py-1 rounded-full bg-[#e5a769]/15 text-[#e5a769] border border-[#e5a769]/30 font-bold">
+                  0 ativos
+                </span>
+              </div>
+              <div id="admin-client-packages-list" class="space-y-2.5"></div>
+            </div>
+
+            <div class="admin-section-card p-4 space-y-3">
+              <h4 class="text-xs md:text-sm font-extrabold text-white">Pacotes Disponíveis no Aplicativo</h4>
+              <div id="admin-package-templates-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- SUB-ABA 4: GESTÃO DE ESTOQUE (BAR & COSMÉTICOS)      -->
+      <!-- (Saldo, Entrada/Saída, Custo, Lucro, Validade, Alertas)-->
+      <!-- ==================================================== -->
+      <div id="admin-sub-inventory" class="hidden space-y-4">
+        <!-- 4 KPIs do Inventário & Estoque -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
+          <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] md:text-[11px] font-bold text-zinc-400 uppercase">Valor em Estoque (Custo)</span>
+              <div class="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-boxes-stacked"></i>
+              </div>
+            </div>
+            <span id="inv-stat-cost-total" class="text-lg md:text-2xl font-black text-white">R$ 0,00</span>
+            <span id="inv-stat-items-sub" class="text-[9px] md:text-[10px] text-zinc-400">0 unidades no inventário</span>
+          </div>
+
+          <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between border-[#e5a769]/25">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] md:text-[11px] font-bold text-[#e5a769] uppercase">Valor de Venda Total</span>
+              <div class="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-[#e5a769]/15 text-[#e5a769] flex items-center justify-center text-xs">
+                <i class="fa-solid fa-tags"></i>
+              </div>
+            </div>
+            <span id="inv-stat-sale-total" class="text-lg md:text-2xl font-black text-[#e5a769]">R$ 0,00</span>
+            <span class="text-[9px] md:text-[10px] text-zinc-500">Faturamento potencial</span>
+          </div>
+
+          <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between border-emerald-500/25">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] md:text-[11px] font-bold text-emerald-400 uppercase">Lucro Projetado</span>
+              <div class="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+            </div>
+            <span id="inv-stat-profit-total" class="text-lg md:text-2xl font-black text-emerald-400">R$ 0,00</span>
+            <span class="text-[9px] md:text-[10px] text-zinc-500">Margem sobre produtos de venda</span>
+          </div>
+
+          <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between border-amber-500/30">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[9px] md:text-[11px] font-bold text-amber-400 uppercase">Alertas de Estoque</span>
+              <div class="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+            </div>
+            <span id="inv-stat-alerts-count" class="text-lg md:text-2xl font-black text-amber-400">0</span>
+            <span id="inv-stat-alerts-sub" class="text-[9px] md:text-[10px] text-amber-300">Baixo saldo ou validade</span>
+          </div>
+        </div>
+
+        <!-- Banner de Avisos Automáticos (Estoque Baixo e Validade) -->
+        <div id="inv-alerts-banner" class="hidden"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+          <!-- Coluna Esquerda: Cadastrar Produto (Bar / Cosmético) + Histórico de Entrada e Saída (5 colunas) -->
+          <div class="md:col-span-5 space-y-4">
+            <div class="admin-section-card p-4 md:p-5 space-y-3 text-xs">
+              <div class="flex items-center space-x-2 pb-2 border-b border-white/[0.07]">
+                <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-bottle-droplet"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs md:text-sm font-extrabold text-white">Cadastrar Produto no Estoque</h4>
+                  <span class="text-[10px] text-zinc-400 block">Produtos de Bar e Cosméticos (para Venda ou Uso Interno)</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="col-span-2">
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Nome do Produto</label>
+                  <input type="text" id="inv-name" placeholder="Ex: Pomada Matte 150g, Cerveja Heineken, Óleo p/ Barba..." class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Linha / Categoria</label>
+                  <select id="inv-category" class="w-full lux-input px-3 py-2 text-xs text-white bg-[#181a20]">
+                    <option value="Cosméticos (Venda)">Cosméticos (Venda)</option>
+                    <option value="Cosméticos (Uso Interno)">Cosméticos (Uso Interno)</option>
+                    <option value="Bar / Bebidas">Bar / Bebidas</option>
+                    <option value="Descartáveis / Lâminas">Descartáveis / Lâminas</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Data de Validade</label>
+                  <input type="date" id="inv-expiry" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Saldo Inicial (Qtd)</label>
+                  <input type="number" id="inv-qty" value="15" min="0" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-amber-400 mb-1">Alerta Estoque Mínimo</label>
+                  <input type="number" id="inv-min-qty" value="5" min="1" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Custo Unitário (R$)</label>
+                  <input type="number" step="0.5" id="inv-cost" placeholder="18.00" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-emerald-400 mb-1">Preço de Venda (R$)</label>
+                  <input type="number" step="0.5" id="inv-sale" placeholder="45.00" class="w-full lux-input px-3 py-2 text-xs text-white" />
+                </div>
+              </div>
+
+              <button type="button" onclick="saveInventoryProduct()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold">
+                <i class="fa-solid fa-plus mr-1"></i>Adicionar Produto ao Inventário
+              </button>
+            </div>
+
+            <!-- Histórico de Movimentações de Entrada e Saída -->
+            <div class="admin-section-card p-4 space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-1.5 border-b border-white/[0.07]">
+                <h5 class="font-extrabold text-white">Histórico de Movimentações (Entrada & Saída)</h5>
+                <span class="text-[10px] text-zinc-400">Rastreio completo</span>
+              </div>
+              <div id="admin-inventory-movements-list" class="space-y-2 max-h-72 overflow-y-auto"></div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Lista de Produtos no Estoque (Saldo, Custo, Lucro, Validade e Botões +Entrada / -Saída) -->
+          <div class="md:col-span-7 space-y-3">
+            <div class="admin-section-card p-4 space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+                <div>
+                  <h4 class="text-xs md:text-sm font-extrabold text-white">Controle de Produtos no Estoque (Inventário)</h4>
+                  <p class="text-[10px] text-zinc-400">Veja saldo atual, custo por produto, lucro unitário, validade e registre entradas/saídas</p>
+                </div>
+              </div>
+              <div id="admin-inventory-list" class="space-y-2.5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- SUB-ABA 5: FLEXIBILIZAÇÃO DA JORNADA & HORÁRIOS      -->
       <!-- ==================================================== -->
       <div id="admin-sub-barbers" class="hidden space-y-4">
-        <!-- Adicionar ou Editar Profissional -->
         <div class="admin-section-card p-4 md:p-5 space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
             <div class="flex items-center space-x-2">
@@ -989,18 +1307,13 @@
           </div>
         </div>
 
-        <!-- Lista de Profissionais com Jornada por Dia da Semana + Jornada por Período -->
-        <div id="admin-barbers-list" class="space-y-4">
-          <!-- Renderizado via JS -->
-        </div>
+        <div id="admin-barbers-list" class="space-y-4"></div>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 4: GESTÃO FINANCEIRA COMPLETA                -->
-      <!-- (Caixa, Contas a Pagar/Receber, Fluxo e Taxas)       -->
+      <!-- SUB-ABA 6: GESTÃO FINANCEIRA COMPLETA                -->
       <!-- ==================================================== -->
       <div id="admin-sub-finance" class="hidden space-y-4">
-        <!-- 4 KPIs Financeiros -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
           <div class="admin-stat-card p-3.5 md:p-4 flex flex-col justify-between border-emerald-500/25">
             <div class="flex items-center justify-between mb-1">
@@ -1048,9 +1361,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          <!-- Coluna Esquerda: Lançar Movimentação + Configurar Taxas de Cartão (5 colunas) -->
           <div class="md:col-span-5 space-y-4">
-            <!-- Novo Lançamento Financeiro -->
             <div class="admin-section-card p-4 md:p-5 space-y-3 text-xs">
               <div class="flex items-center space-x-2 pb-2 border-b border-white/[0.07]">
                 <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
@@ -1098,7 +1409,8 @@
                   <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Categoria</label>
                   <select id="fin-tx-category" class="w-full lux-input px-3 py-2 text-xs text-white bg-[#181a20]">
                     <option value="Serviços">Serviços / Cortes</option>
-                    <option value="Produtos">Produtos / Insumos</option>
+                    <option value="Pacotes">Pacotes Fidelidade</option>
+                    <option value="Produtos">Produtos / Estoque</option>
                     <option value="Fixo">Custo Fixo (Aluguel/Luz/Internet)</option>
                     <option value="Comissão">Comissão Profissional</option>
                     <option value="Outros">Outros</option>
@@ -1116,7 +1428,6 @@
               </button>
             </div>
 
-            <!-- Taxas de Cartões e Maquininha -->
             <div class="admin-section-card p-4 space-y-3 text-xs">
               <div class="flex items-center justify-between">
                 <div>
@@ -1144,7 +1455,6 @@
             </div>
           </div>
 
-          <!-- Coluna Direita: Fluxo de Caixa, Contas a Pagar e a Receber (7 colunas) -->
           <div class="md:col-span-7 space-y-3">
             <div class="admin-section-card p-4 space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/[0.07]">
@@ -1160,22 +1470,127 @@
                 </div>
               </div>
 
-              <div id="admin-finance-list" class="space-y-2.5">
-                <!-- Renderizado via JS -->
-              </div>
+              <div id="admin-finance-list" class="space-y-2.5"></div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 5: ENVIO DE NOTÍCIAS E PROMOÇÕES             -->
-      <!-- (Com rastreamento de Quem Recebeu e Quem Leu)        -->
+      <!-- SUB-ABA 7: FIDELIDADE, RETORNO AUTOMÁTICO & SATISFAÇÃO-->
+      <!-- ==================================================== -->
+      <div id="admin-sub-crm" class="hidden space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+          
+          <!-- 1. PROGRAMA DE FIDELIDADE (PONTOS / MILHAS & PRÊMIOS) -->
+          <div class="md:col-span-6 admin-section-card p-4 md:p-5 space-y-3.5 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+              <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-gem"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs md:text-sm font-extrabold text-white">Programa de Fidelidade (Pontos & Milhas)</h4>
+                  <span class="text-[10px] text-zinc-400 block">Configure pontos por serviço/produto e prêmios para troca</span>
+                </div>
+              </div>
+              <button type="button" onclick="saveLoyaltyConfigAdmin()" class="px-3 py-1.5 rounded-xl btn-lux-primary text-[10px] font-extrabold">
+                Salvar Regra
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Pontos por Serviço Concluído</label>
+                <input type="number" id="loy-pts-service" value="15" class="w-full lux-input px-3 py-2 text-xs text-white" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-zinc-300 mb-1">Pontos a cada R$ 10 gastos</label>
+                <input type="number" id="loy-pts-per10" value="5" class="w-full lux-input px-3 py-2 text-xs text-white" />
+              </div>
+            </div>
+
+            <!-- Adicionar Prêmio para Troca -->
+            <div class="p-3 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2">
+              <span class="text-[10px] font-bold text-[#e5a769] uppercase block">Cadastrar Prêmio / Recompensa para Resgate</span>
+              <div class="grid grid-cols-3 gap-2">
+                <input type="text" id="loy-reward-name" placeholder="Ex: Corte Degradê Grátis" class="col-span-2 lux-input px-2.5 py-1.5 text-xs text-white" />
+                <input type="number" id="loy-reward-pts" placeholder="100 pts" class="lux-input px-2.5 py-1.5 text-xs text-white" />
+              </div>
+              <button type="button" onclick="addLoyaltyRewardAdmin()" class="w-full py-2 rounded-xl bg-[#1b1e28] hover:bg-[#e5a769] text-[#e5a769] hover:text-[#0d0e12] border border-[#e5a769]/35 text-[10px] font-extrabold transition">
+                + Adicionar Recompensa ao Catálogo
+              </button>
+              <div id="admin-loyalty-rewards-list" class="space-y-1.5 pt-1"></div>
+            </div>
+
+            <!-- Solicitações de Resgate dos Clientes -->
+            <div class="space-y-2">
+              <span class="text-[10px] font-bold text-zinc-300 uppercase block">Solicitações de Resgate dos Clientes</span>
+              <div id="admin-loyalty-redemptions-list" class="space-y-1.5"></div>
+            </div>
+          </div>
+
+          <!-- 2. MENSAGENS DE RETORNO AUTOMÁTICAS + 3. PESQUISA DE SATISFAÇÃO -->
+          <div class="md:col-span-6 space-y-4">
+            <!-- MENSAGENS DE RETORNO AUTOMÁTICAS -->
+            <div class="admin-section-card p-4 md:p-5 space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-rotate"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xs md:text-sm font-extrabold text-white">Mensagens de Retorno Automáticas</h4>
+                    <span class="text-[10px] text-zinc-400 block">Avise o cliente automaticamente no dia ideal de retornar</span>
+                  </div>
+                </div>
+                <button type="button" onclick="triggerReturnMessagesNow()" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/35 text-sky-300 text-[10px] font-extrabold">
+                  Disparar Retornos
+                </button>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <select id="ret-rule-service" class="col-span-2 lux-input px-2.5 py-1.5 text-xs text-white bg-[#181a20]"></select>
+                <input type="number" id="ret-rule-days" value="15" min="1" placeholder="Dias (ex: 15)" class="lux-input px-2.5 py-1.5 text-xs text-white" />
+              </div>
+              <input type="text" id="ret-rule-msg" placeholder="Ex: Olá {cliente}! Já faz {dias} dias do seu {servico}. Vamos renovar o visual?" class="w-full lux-input px-2.5 py-1.5 text-xs text-white" />
+              <button type="button" onclick="saveReturnRuleAdmin()" class="w-full py-2 rounded-xl btn-lux-primary text-[10px] font-extrabold">
+                + Salvar Regra de Retorno Automático
+              </button>
+
+              <div id="admin-return-rules-list" class="space-y-1.5 pt-1"></div>
+            </div>
+
+            <!-- PESQUISA DE SATISFAÇÃO (AVALIAÇÕES DOS ATENDIMENTOS) -->
+            <div class="admin-section-card p-4 md:p-5 space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-star"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xs md:text-sm font-extrabold text-white">Pesquisa de Satisfação</h4>
+                    <span id="admin-satisfaction-avg-label" class="text-[10px] text-[#e5a769] font-bold block">Média: 5.0 ⭐</span>
+                  </div>
+                </div>
+                <label class="flex items-center space-x-2 cursor-pointer text-[10px] font-bold text-emerald-400">
+                  <input type="checkbox" id="admin-satisfaction-toggle" checked onchange="toggleSatisfactionEnabled(this.checked)" class="accent-[#e5a769]" />
+                  <span>Pesquisa Ativa</span>
+                </label>
+              </div>
+
+              <div id="admin-reviews-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- SUB-ABA 8: ENVIO DE NOTÍCIAS E PROMOÇÕES             -->
       <!-- ==================================================== -->
       <div id="admin-sub-promotions" class="hidden space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          
-          <!-- Formulário de Disparo de Evento / Promoção (5 colunas) -->
           <div class="md:col-span-5 admin-section-card p-4 md:p-5 space-y-3.5 text-xs">
             <div class="flex items-center space-x-2.5 pb-2.5 border-b border-white/[0.07]">
               <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
@@ -1209,7 +1624,6 @@
                 </div>
               </div>
 
-              <!-- Canais de Envio -->
               <div class="p-3 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-1.5">
                 <span class="text-[10px] font-bold text-[#e5a769] uppercase block">Canais de Disparo</span>
                 <div class="flex items-center space-x-4">
@@ -1224,7 +1638,6 @@
                 </div>
               </div>
 
-              <!-- Público-Alvo: Todos ou Grupo Específico -->
               <div class="p-3 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-bold text-zinc-200 uppercase">Destinatários</span>
@@ -1233,9 +1646,7 @@
                     <option value="group">Selecionar Grupo de Clientes</option>
                   </select>
                 </div>
-                <div id="promo-group-selector" class="hidden space-y-1.5 pt-1 max-h-32 overflow-y-auto">
-                  <!-- Checkboxes de clientes gerados via JS -->
-                </div>
+                <div id="promo-group-selector" class="hidden space-y-1.5 pt-1 max-h-32 overflow-y-auto"></div>
               </div>
 
               <button type="button" onclick="sendPromotionCampaign()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold flex items-center justify-center space-x-1.5">
@@ -1245,7 +1656,6 @@
             </div>
           </div>
 
-          <!-- Lista de Campanhas Enviadas & Rastreamento (Quem Recebeu e Quando / Quem Leu e Quando) -->
           <div class="md:col-span-7 space-y-3">
             <div class="admin-section-card p-4 space-y-3">
               <div class="flex items-center justify-between pb-2 border-b border-white/[0.07]">
@@ -1258,26 +1668,19 @@
                 </span>
               </div>
 
-              <div id="admin-promotions-list" class="space-y-3">
-                <!-- Renderizado via JS -->
-              </div>
+              <div id="admin-promotions-list" class="space-y-3"></div>
             </div>
           </div>
-
         </div>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 6: RELATÓRIOS GERENCIAIS (BI & INSIGHTS)     -->
+      <!-- SUB-ABA 9: RELATÓRIOS GERENCIAIS (BI & INSIGHTS)     -->
       <!-- ==================================================== -->
       <div id="admin-sub-reports" class="hidden space-y-4">
-        <!-- Card de Tomada de Decisão Automática (Dia de Menor Movimento -> Criar Promoção 20% OFF) -->
-        <div id="reports-smart-insight-card" class="lux-card-elevated p-4 md:p-5 border-[#e5a769]/35 bg-gradient-to-r from-[#171922] via-[#1d1916] to-[#251e16] flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <!-- Preenchido dinamicamente via JS -->
-        </div>
+        <div id="reports-smart-insight-card" class="lux-card-elevated p-4 md:p-5 border-[#e5a769]/35 bg-gradient-to-r from-[#171922] via-[#1d1916] to-[#251e16] flex flex-col md:flex-row md:items-center justify-between gap-4"></div>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <!-- Relatório por Dia da Semana -->
           <div class="md:col-span-6 admin-section-card p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -1289,7 +1692,6 @@
             <div id="report-chart-weekdays" class="space-y-2 pt-1"></div>
           </div>
 
-          <!-- Relatório por Horário -->
           <div class="md:col-span-6 admin-section-card p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -1301,7 +1703,6 @@
             <div id="report-chart-hours" class="space-y-2 pt-1"></div>
           </div>
 
-          <!-- Relatório por Plataforma (App Mobile, Web Desktop, Encaixe) -->
           <div class="md:col-span-6 admin-section-card p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -1313,7 +1714,6 @@
             <div id="report-chart-platforms" class="space-y-2 pt-1"></div>
           </div>
 
-          <!-- Relatório por Mês -->
           <div class="md:col-span-6 admin-section-card p-4 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -1328,12 +1728,10 @@
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 7: ACESSOS & USUÁRIOS (QUEM VÊ O ADMIN)      -->
+      <!-- SUB-ABA 10: ACESSOS & USUÁRIOS                       -->
       <!-- ==================================================== -->
       <div id="admin-sub-users" class="hidden space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-          
-          <!-- Criar Novo Acesso / Usuário à Parte (5 colunas no Desktop) -->
           <div class="md:col-span-5 admin-section-card p-4 md:p-5 space-y-3.5">
             <div class="flex items-center space-x-2.5 pb-2.5 border-b border-white/[0.07]">
               <div class="w-8 h-8 rounded-xl bg-[#e5a769]/15 border border-[#e5a769]/30 text-[#e5a769] flex items-center justify-center text-xs">
@@ -1378,7 +1776,6 @@
             </div>
           </div>
 
-          <!-- Lista de Todas as Pessoas que Logaram / Cadastraram (7 colunas no Desktop) -->
           <div class="md:col-span-7 space-y-3">
             <div class="admin-section-card p-4 space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/[0.07]">
@@ -1391,17 +1788,14 @@
                 </span>
               </div>
 
-              <div id="admin-users-list" class="space-y-2.5">
-                <!-- Renderizado via JS -->
-              </div>
+              <div id="admin-users-list" class="space-y-2.5"></div>
             </div>
           </div>
-
         </div>
       </div>
 
       <!-- ==================================================== -->
-      <!-- SUB-ABA 8: DADOS DA BARBEARIA                        -->
+      <!-- SUB-ABA 11: DADOS DA BARBEARIA                       -->
       <!-- ==================================================== -->
       <div id="admin-sub-settings" class="hidden max-w-2xl mx-auto">
         <div class="admin-section-card p-5 space-y-3.5 text-xs">
@@ -1463,13 +1857,13 @@
           </button>
         </div>
 
-        <!-- Sobre / Barbearia -->
-        <button onclick="switchTab('about')" id="nav-item-about" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
-          <i class="fa-solid fa-store text-sm"></i>
-          <span class="text-[9px] font-medium">Sobre</span>
+        <!-- Fidelidade & Pacotes -->
+        <button onclick="switchTab('loyalty')" id="nav-item-loyalty" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
+          <i class="fa-solid fa-gem text-sm"></i>
+          <span class="text-[9px] font-medium">Fidelidade</span>
         </button>
 
-        <!-- Perfil (Onde fica os dados da conta e o Sair da Conta) -->
+        <!-- Perfil -->
         <button onclick="switchTab('profile')" id="nav-item-profile" class="flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-white">
           <i class="fa-regular fa-user text-sm"></i>
           <span class="text-[9px] font-medium">Perfil</span>
@@ -1482,7 +1876,6 @@
 
   <!-- ============================================== -->
   <!-- MODAL DE CENTRAL DE NOTIFICAÇÕES DO CLIENTE    -->
-  <!-- (Lembretes de Horário + Promoções com Leitura) -->
   <!-- ============================================== -->
   <div id="modal-client-notifications" class="fixed inset-0 z-50 lux-modal-backdrop flex items-center justify-center p-4 hidden">
     <div class="lux-modal-box w-full max-w-md p-5 space-y-4 max-h-[85vh] overflow-y-auto">
@@ -1492,8 +1885,8 @@
             <i class="fa-solid fa-bell"></i>
           </div>
           <div>
-            <h4 class="text-sm font-extrabold text-white">Notificações & Lembretes</h4>
-            <p class="text-[10px] text-zinc-400">Avisos de horários, eventos e promoções exclusivas</p>
+            <h4 class="text-sm font-extrabold text-white">Notificações, Retorno & Vagas</h4>
+            <p class="text-[10px] text-zinc-400">Lembretes de horários, vagas da lista de espera e promoções</p>
           </div>
         </div>
         <button onclick="closeClientNotificationsModal()" class="w-8 h-8 rounded-xl bg-[#161820] text-zinc-400 hover:text-white flex items-center justify-center">
@@ -1501,8 +1894,42 @@
         </button>
       </div>
 
-      <div id="client-notifications-list" class="space-y-2.5 text-xs">
-        <!-- Preenchido via JS -->
+      <div id="client-notifications-list" class="space-y-2.5 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL DE PESQUISA DE SATISFAÇÃO DO CLIENTE     -->
+  <!-- ============================================== -->
+  <div id="modal-satisfaction-survey" class="fixed inset-0 z-50 lux-modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="lux-modal-box w-full max-w-sm p-5 space-y-4 text-xs text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/35 text-amber-400 mx-auto flex items-center justify-center text-lg">
+        <i class="fa-solid fa-star"></i>
+      </div>
+      <div>
+        <h4 class="text-sm font-extrabold text-white">Pesquisa de Satisfação</h4>
+        <p id="survey-service-subtitle" class="text-[11px] text-zinc-400 mt-0.5">Como foi seu atendimento com o profissional?</p>
+      </div>
+      <input type="hidden" id="survey-app-id" />
+
+      <!-- Seletor de 1 a 5 Estrelas -->
+      <div id="survey-stars-row" class="flex items-center justify-center space-x-2 py-1">
+        <button type="button" onclick="selectSurveyRating(1)" class="survey-star text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+        <button type="button" onclick="selectSurveyRating(2)" class="survey-star text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+        <button type="button" onclick="selectSurveyRating(3)" class="survey-star text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+        <button type="button" onclick="selectSurveyRating(4)" class="survey-star text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+        <button type="button" onclick="selectSurveyRating(5)" class="survey-star text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+      </div>
+
+      <textarea id="survey-comment" rows="3" placeholder="Conte como foi o atendimento, corte e ambiente..." class="w-full lux-input px-3 py-2 text-xs text-white"></textarea>
+
+      <div class="flex items-center space-x-2">
+        <button type="button" onclick="closeSatisfactionModal()" class="flex-1 py-2.5 rounded-xl bg-[#1a1d26] border border-white/10 text-zinc-300 font-bold">
+          Depois
+        </button>
+        <button type="button" onclick="submitSatisfactionSurvey()" class="flex-1 py-2.5 rounded-xl btn-lux-primary font-extrabold">
+          Enviar Avaliação
+        </button>
       </div>
     </div>
   </div>
@@ -1581,9 +2008,7 @@
         <h4 class="text-sm font-extrabold text-white">Horário Confirmado!</h4>
         <p class="text-[11px] text-zinc-400 mt-0.5">Lembrete via Push e E-mail programado com sucesso.</p>
       </div>
-      <div id="modal-success-content" class="p-3 rounded-2xl bg-[#161820] border border-white/[0.08] text-[11px] text-left space-y-1 text-zinc-300">
-        <!-- Preenchido via JS -->
-      </div>
+      <div id="modal-success-content" class="p-3 rounded-2xl bg-[#161820] border border-white/[0.08] text-[11px] text-left space-y-1 text-zinc-300"></div>
       <button onclick="closeSuccessAndGoHome()" class="w-full py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold">
         Ver Minha Agenda
       </button>
@@ -1592,7 +2017,6 @@
 
   <!-- ============================================== -->
   <!-- MODAL CUSTOMIZADO DE ALERTA E CONFIRMAÇÃO LUXO -->
-  <!-- (Substitui 100% o alert/confirm do navegador)  -->
   <!-- ============================================== -->
   <div id="lux-dialog-modal" class="fixed inset-0 z-[60] lux-modal-backdrop flex items-center justify-center p-4 hidden">
     <div class="lux-modal-box w-full max-w-xs p-5 text-center space-y-4">

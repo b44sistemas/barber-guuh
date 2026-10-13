@@ -220,6 +220,172 @@ const DEFAULT_REMINDER_SETTINGS = {
   minutesBefore: 60
 };
 
+const DEFAULT_PACKAGES = [
+  {
+    _id: 'pkg_1',
+    name: 'Pacote Mensal 4 Cortes Degradê',
+    itemsDesc: '4x Corte Degradê / Social + Finalização com Pomada',
+    totalSessions: 4,
+    originalPrice: 160.0,
+    price: 135.0,
+    loyaltyPoints: 50
+  },
+  {
+    _id: 'pkg_2',
+    name: 'Combo VIP: 4 Cortes + 4 Barbas + 2 Cervejas',
+    itemsDesc: '4x Corte + 4x Barba Completa + 2x Cerveja Artesanal do Bar',
+    totalSessions: 4,
+    originalPrice: 300.0,
+    price: 240.0,
+    loyaltyPoints: 100
+  }
+];
+
+const DEFAULT_CLIENT_PACKAGES = [
+  {
+    _id: 'cp_seed_1',
+    packageId: 'pkg_1',
+    packageName: 'Pacote Mensal 4 Cortes Degradê',
+    itemsDesc: '4x Corte Degradê / Social + Finalização com Pomada',
+    userId: 'u_client1',
+    clientName: 'Felipe Rocha',
+    clientEmail: 'felipe@email.com',
+    totalSessions: 4,
+    usedSessions: 1,
+    pricePaid: 135.0,
+    purchasedAt: '12/10/2026',
+    history: ['12/10/2026 11:00']
+  }
+];
+
+const DEFAULT_INVENTORY = [
+  {
+    _id: 'inv_1',
+    name: 'Pomada Modeladora Matte Efeito Seco 120g',
+    category: 'Cosmético Venda',
+    quantity: 14,
+    minQty: 5,
+    costPrice: 18.0,
+    salePrice: 45.0,
+    expiryDate: '2027-08-15'
+  },
+  {
+    _id: 'inv_2',
+    name: 'Cerveja Heineken Long Neck 330ml (Gelada)',
+    category: 'Bar & Bebidas',
+    quantity: 4,
+    minQty: 6,
+    costPrice: 5.5,
+    salePrice: 12.0,
+    expiryDate: '2026-12-20'
+  },
+  {
+    _id: 'inv_3',
+    name: 'Óleo para Barba Hidratante Premium 30ml',
+    category: 'Cosmético Venda',
+    quantity: 9,
+    minQty: 3,
+    costPrice: 15.0,
+    salePrice: 38.0,
+    expiryDate: '2027-05-10'
+  },
+  {
+    _id: 'inv_4',
+    name: 'Caixa de Lâminas Descartáveis Inox (100 un)',
+    category: 'Uso Interno',
+    quantity: 2,
+    minQty: 3,
+    costPrice: 32.0,
+    salePrice: 32.0,
+    expiryDate: '2028-01-01'
+  }
+];
+
+const DEFAULT_INVENTORY_MOVEMENTS = [
+  {
+    _id: 'mov_1',
+    productId: 'inv_1',
+    productName: 'Pomada Modeladora Matte Efeito Seco 120g',
+    type: 'in',
+    qty: 15,
+    unitCost: 18.0,
+    unitSale: 45.0,
+    reason: 'Compra inicial fornecedor',
+    date: '12/10/2026 09:00'
+  },
+  {
+    _id: 'mov_2',
+    productId: 'inv_1',
+    productName: 'Pomada Modeladora Matte Efeito Seco 120g',
+    type: 'out_sale',
+    qty: 1,
+    unitCost: 18.0,
+    unitSale: 45.0,
+    reason: 'Venda balcão - Felipe Rocha',
+    date: '12/10/2026 10:30'
+  }
+];
+
+const DEFAULT_RETURN_RULES = [
+  {
+    _id: 'ret_1',
+    serviceId: 's1',
+    serviceName: 'Corte Degradê / Social',
+    daysAfter: 15,
+    message: 'Olá {cliente}! Já faz 15 dias do seu último Corte Degradê na Guuh Barbeiro. Que tal renovar o visual hoje?',
+    lastTriggeredAt: '12/10/2026 10:00'
+  },
+  {
+    _id: 'ret_2',
+    serviceId: 's2',
+    serviceName: 'Barba Completa',
+    daysAfter: 10,
+    message: 'Fala {cliente}! Sua barba já merece aquele trato com toalha quente. Reserve seu horário de retorno!',
+    lastTriggeredAt: '12/10/2026 10:00'
+  }
+];
+
+const DEFAULT_REVIEWS = [
+  {
+    _id: 'rev_1',
+    appointmentId: 'app_seed_1',
+    clientName: 'Felipe Rocha',
+    clientEmail: 'felipe@email.com',
+    barberName: 'Ricardo',
+    serviceName: 'Corte Degradê / Social + Barba Completa',
+    rating: 5,
+    comment: 'Atendimento impecável do Ricardo! Degradê perfeito e cerveja trincando.',
+    createdAt: '12/10/2026 11:30'
+  }
+];
+
+const DEFAULT_LOYALTY = {
+  pointsPerService: 10,
+  pointsPer10Reais: 1,
+  rewards: [
+    { _id: 'rew_1', title: 'Acabamento / Sobrancelha Grátis', pointsCost: 50, category: 'Serviço' },
+    { _id: 'rew_2', title: 'Cerveja Long Neck ou Energético Grátis', pointsCost: 40, category: 'Produto do Bar' },
+    { _id: 'rew_3', title: 'Barba Completa c/ Toalha Quente Grátis', pointsCost: 80, category: 'Serviço' },
+    { _id: 'rew_4', title: 'Corte Degradê / Social 100% Grátis', pointsCost: 100, category: 'Serviço' },
+    { _id: 'rew_5', title: 'Pomada Modeladora Matte 120g Grátis', pointsCost: 120, category: 'Cosmético' }
+  ],
+  balances: {
+    u_client1: 65
+  },
+  history: [
+    {
+      _id: 'lh_1',
+      userId: 'u_client1',
+      clientName: 'Felipe Rocha',
+      type: 'earn',
+      points: 65,
+      desc: 'Pontos acumulados (Pacote Mensal + Corte & Barba)',
+      date: '12/10/2026 11:00'
+    }
+  ],
+  redemptions: []
+};
+
 const state = {
   shop: {
     name: 'Guuh Barbeiro',
@@ -235,6 +401,15 @@ const state = {
   promotions: [],
   finance: JSON.parse(JSON.stringify(DEFAULT_FINANCE)),
   reminderSettings: { ...DEFAULT_REMINDER_SETTINGS },
+  packages: JSON.parse(JSON.stringify(DEFAULT_PACKAGES)),
+  clientPackages: JSON.parse(JSON.stringify(DEFAULT_CLIENT_PACKAGES)),
+  inventory: JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
+  inventoryMovements: JSON.parse(JSON.stringify(DEFAULT_INVENTORY_MOVEMENTS)),
+  waitlist: [],
+  returnRules: JSON.parse(JSON.stringify(DEFAULT_RETURN_RULES)),
+  reviews: JSON.parse(JSON.stringify(DEFAULT_REVIEWS)),
+  satisfactionEnabled: true,
+  loyalty: JSON.parse(JSON.stringify(DEFAULT_LOYALTY)),
   currentUser: null,
   currentAuthMode: 'login',
   currentTab: 'home',
@@ -250,7 +425,8 @@ const state = {
   selectedTime: null,
   calendarYear: new Date().getFullYear(),
   calendarMonth: new Date().getMonth(),
-  isCalendarOpen: false
+  isCalendarOpen: false,
+  surveyCurrentRating: 5
 };
 
 // ========================================================
@@ -426,6 +602,15 @@ async function loadAllData() {
   const lsPromos = localStorage.getItem('guuh_db_promotions');
   const lsFinance = localStorage.getItem('guuh_db_finance');
   const lsReminders = localStorage.getItem('guuh_db_reminders');
+  const lsPackages = localStorage.getItem('guuh_db_packages');
+  const lsClientPackages = localStorage.getItem('guuh_db_client_packages');
+  const lsInventory = localStorage.getItem('guuh_db_inventory');
+  const lsInvMovs = localStorage.getItem('guuh_db_inventory_movs');
+  const lsWaitlist = localStorage.getItem('guuh_db_waitlist');
+  const lsReturnRules = localStorage.getItem('guuh_db_return_rules');
+  const lsReviews = localStorage.getItem('guuh_db_reviews');
+  const lsSatEnabled = localStorage.getItem('guuh_db_sat_enabled');
+  const lsLoyalty = localStorage.getItem('guuh_db_loyalty');
 
   state.users = lsUsers ? JSON.parse(lsUsers) : [...DEFAULT_USERS];
   state.services = lsServices ? JSON.parse(lsServices) : [...DEFAULT_SERVICES];
@@ -434,6 +619,15 @@ async function loadAllData() {
   state.promotions = lsPromos ? JSON.parse(lsPromos) : JSON.parse(JSON.stringify(DEFAULT_PROMOTIONS));
   state.finance = lsFinance ? JSON.parse(lsFinance) : JSON.parse(JSON.stringify(DEFAULT_FINANCE));
   state.reminderSettings = lsReminders ? JSON.parse(lsReminders) : { ...DEFAULT_REMINDER_SETTINGS };
+  state.packages = lsPackages ? JSON.parse(lsPackages) : JSON.parse(JSON.stringify(DEFAULT_PACKAGES));
+  state.clientPackages = lsClientPackages ? JSON.parse(lsClientPackages) : JSON.parse(JSON.stringify(DEFAULT_CLIENT_PACKAGES));
+  state.inventory = lsInventory ? JSON.parse(lsInventory) : JSON.parse(JSON.stringify(DEFAULT_INVENTORY));
+  state.inventoryMovements = lsInvMovs ? JSON.parse(lsInvMovs) : JSON.parse(JSON.stringify(DEFAULT_INVENTORY_MOVEMENTS));
+  state.waitlist = lsWaitlist ? JSON.parse(lsWaitlist) : [];
+  state.returnRules = lsReturnRules ? JSON.parse(lsReturnRules) : JSON.parse(JSON.stringify(DEFAULT_RETURN_RULES));
+  state.reviews = lsReviews ? JSON.parse(lsReviews) : JSON.parse(JSON.stringify(DEFAULT_REVIEWS));
+  state.satisfactionEnabled = lsSatEnabled !== null ? JSON.parse(lsSatEnabled) : true;
+  state.loyalty = lsLoyalty ? JSON.parse(lsLoyalty) : JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
 
   if (lsShop) {
     state.shop = { ...state.shop, ...JSON.parse(lsShop) };
@@ -480,7 +674,7 @@ async function loadAllData() {
 
   // Sincroniza com a API do servidor
   try {
-    const [svcRes, barbRes, appRes, setRes, usrRes, promoRes, finRes, remRes] = await Promise.all([
+    const [svcRes, barbRes, appRes, setRes, usrRes, promoRes, finRes, remRes, modRes] = await Promise.all([
       fetch(`${API_BASE}/services`),
       fetch(`${API_BASE}/barbers`),
       fetch(`${API_BASE}/appointments`),
@@ -488,7 +682,8 @@ async function loadAllData() {
       fetch(`${API_BASE}/users`),
       fetch(`${API_BASE}/promotions`),
       fetch(`${API_BASE}/finance`),
-      fetch(`${API_BASE}/reminders/settings`)
+      fetch(`${API_BASE}/reminders/settings`),
+      fetch(`${API_BASE}/modules/sync`)
     ]);
 
     if (usrRes && usrRes.ok) {
@@ -535,6 +730,18 @@ async function loadAllData() {
       const data = await remRes.json();
       if (data.reminders) state.reminderSettings = { ...state.reminderSettings, ...data.reminders };
     }
+    if (modRes && modRes.ok) {
+      const mData = await modRes.json();
+      if (!lsPackages && Array.isArray(mData.packages) && mData.packages.length > 0) state.packages = mData.packages;
+      if (!lsClientPackages && Array.isArray(mData.clientPackages) && mData.clientPackages.length > 0) state.clientPackages = mData.clientPackages;
+      if (!lsInventory && Array.isArray(mData.inventory) && mData.inventory.length > 0) state.inventory = mData.inventory;
+      if (!lsInvMovs && Array.isArray(mData.inventoryMovements) && mData.inventoryMovements.length > 0) state.inventoryMovements = mData.inventoryMovements;
+      if (!lsWaitlist && Array.isArray(mData.waitlist)) state.waitlist = mData.waitlist;
+      if (!lsReturnRules && Array.isArray(mData.returnRules) && mData.returnRules.length > 0) state.returnRules = mData.returnRules;
+      if (!lsReviews && Array.isArray(mData.reviews) && mData.reviews.length > 0) state.reviews = mData.reviews;
+      if (lsSatEnabled === null && typeof mData.satisfactionEnabled === 'boolean') state.satisfactionEnabled = mData.satisfactionEnabled;
+      if (!lsLoyalty && mData.loyalty && mData.loyalty.rewards) state.loyalty = mData.loyalty;
+    }
   } catch (e) {}
 
   persistLocalData();
@@ -549,6 +756,37 @@ function persistLocalData() {
   localStorage.setItem('guuh_db_promotions', JSON.stringify(state.promotions));
   localStorage.setItem('guuh_db_finance', JSON.stringify(state.finance));
   localStorage.setItem('guuh_db_reminders', JSON.stringify(state.reminderSettings));
+  localStorage.setItem('guuh_db_packages', JSON.stringify(state.packages));
+  localStorage.setItem('guuh_db_client_packages', JSON.stringify(state.clientPackages));
+  localStorage.setItem('guuh_db_inventory', JSON.stringify(state.inventory));
+  localStorage.setItem('guuh_db_inventory_movs', JSON.stringify(state.inventoryMovements));
+  localStorage.setItem('guuh_db_waitlist', JSON.stringify(state.waitlist));
+  localStorage.setItem('guuh_db_return_rules', JSON.stringify(state.returnRules));
+  localStorage.setItem('guuh_db_reviews', JSON.stringify(state.reviews));
+  localStorage.setItem('guuh_db_sat_enabled', JSON.stringify(state.satisfactionEnabled));
+  localStorage.setItem('guuh_db_loyalty', JSON.stringify(state.loyalty));
+
+  syncModulesToServer();
+}
+
+async function syncModulesToServer() {
+  try {
+    await fetch(`${API_BASE}/modules/sync`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        packages: state.packages,
+        clientPackages: state.clientPackages,
+        inventory: state.inventory,
+        inventoryMovements: state.inventoryMovements,
+        waitlist: state.waitlist,
+        returnRules: state.returnRules,
+        reviews: state.reviews,
+        satisfactionEnabled: state.satisfactionEnabled,
+        loyalty: state.loyalty
+      })
+    });
+  } catch (e) {}
 }
 
 function checkSessionAndStart() {
@@ -903,8 +1141,59 @@ function updateGreeting() {
     }
   }
 
+  // Atualiza saldo de pontos do Programa de Fidelidade no topo do cabeçalho
+  const ptsHeader = document.getElementById('header-loyalty-points');
+  if (ptsHeader) {
+    ptsHeader.textContent = getUserLoyaltyPoints(state.currentUser);
+  }
+
   renderHomeActivePromoBanner();
   updateClientNotificationBadge();
+}
+
+function getUserLoyaltyPoints(user) {
+  if (!user) return 0;
+  if (!state.loyalty || !state.loyalty.balances) return 0;
+  const key = user._id || user.email || 'guest';
+  if (typeof state.loyalty.balances[key] === 'number') return state.loyalty.balances[key];
+  if (user.email && typeof state.loyalty.balances[user.email] === 'number') return state.loyalty.balances[user.email];
+  return 0;
+}
+
+function setUserLoyaltyPoints(user, newPts) {
+  if (!user) return;
+  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
+  if (!state.loyalty.balances) state.loyalty.balances = {};
+  const key = user._id || user.email || 'guest';
+  state.loyalty.balances[key] = Math.max(0, newPts);
+}
+
+function awardLoyaltyPoints(userId, clientName, clientEmail, pointsToAdd, desc) {
+  if (!pointsToAdd || pointsToAdd <= 0) return;
+  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
+  if (!state.loyalty.balances) state.loyalty.balances = {};
+  if (!Array.isArray(state.loyalty.history)) state.loyalty.history = [];
+
+  const targetUser = state.users.find(
+    u => (userId && u._id === userId) || (clientEmail && (u.email || '').toLowerCase() === clientEmail.toLowerCase()) || (clientName && (u.name || '').toLowerCase() === clientName.toLowerCase())
+  );
+  const key = targetUser ? targetUser._id : (userId || clientEmail || clientName || 'guest');
+  state.loyalty.balances[key] = (state.loyalty.balances[key] || 0) + pointsToAdd;
+
+  state.loyalty.history.unshift({
+    _id: `lh_${Date.now()}`,
+    userId: key,
+    clientName: targetUser ? targetUser.name : (clientName || 'Cliente'),
+    type: 'earn',
+    points: pointsToAdd,
+    desc,
+    date: formatNowTimestamp()
+  });
+
+  const ptsHeader = document.getElementById('header-loyalty-points');
+  if (ptsHeader && state.currentUser) {
+    ptsHeader.textContent = getUserLoyaltyPoints(state.currentUser);
+  }
 }
 
 function markPromotionsReceivedForCurrentUser() {
@@ -939,7 +1228,7 @@ function markPromotionsReceivedForCurrentUser() {
 
 function getClientRemindersAndPromos() {
   const user = state.currentUser;
-  if (!user) return { upcomingApps: [], promos: [], unreadCount: 0 };
+  if (!user) return { upcomingApps: [], promos: [], waitlistAlerts: [], returnMessages: [], pendingSurveys: [], unreadCount: 0 };
 
   const upcomingApps = state.appointments.filter(a => {
     if (a.status !== 'confirmed') return false;
@@ -963,10 +1252,38 @@ function getClientRemindersAndPromos() {
     if (!rec || !rec.readAt) unreadPromos++;
   });
 
+  // Alertas automáticos de Vaga Liberada na Lista de Espera
+  const waitlistAlerts = (state.waitlist || []).filter(w => {
+    if (w.status !== 'notified') return false;
+    if (user._id && w.userId === user._id) return true;
+    if (user.email && (w.clientEmail || '').toLowerCase() === user.email.toLowerCase()) return true;
+    return false;
+  });
+
+  // Mensagens de Retorno Automáticas configuradas pela Barbearia
+  const returnMessages = (state.returnRules || []).map(rule => ({
+    ...rule,
+    personalizedText: (rule.message || '').replace('{cliente}', user.name || 'Cliente')
+  }));
+
+  // Pesquisas de Satisfação Pendentes (para atendimentos concluídos ainda não avaliados)
+  const pendingSurveys = state.satisfactionEnabled
+    ? state.appointments.filter(a => {
+        if (a.status !== 'completed') return false;
+        const belongsToUser = (user._id && a.userId === user._id) || (user.email && (a.clientEmail || '').toLowerCase() === user.email.toLowerCase()) || (a.clientName && a.clientName.toLowerCase() === (user.name || '').toLowerCase());
+        if (!belongsToUser) return false;
+        const alreadyReviewed = (state.reviews || []).some(r => r.appointmentId === a._id);
+        return !alreadyReviewed;
+      })
+    : [];
+
   return {
     upcomingApps,
     promos: userPromos,
-    unreadCount: upcomingApps.length + unreadPromos
+    waitlistAlerts,
+    returnMessages,
+    pendingSurveys,
+    unreadCount: upcomingApps.length + unreadPromos + waitlistAlerts.length + pendingSurveys.length
   };
 }
 
@@ -985,7 +1302,49 @@ function updateClientNotificationBadge() {
 function renderHomeActivePromoBanner() {
   const box = document.getElementById('home-active-promo-alert');
   if (!box) return;
-  const { promos } = getClientRemindersAndPromos();
+  const { promos, waitlistAlerts, pendingSurveys } = getClientRemindersAndPromos();
+
+  if (waitlistAlerts && waitlistAlerts.length > 0) {
+    const w = waitlistAlerts[0];
+    const [y, m, d] = (w.date || '').split('-');
+    box.classList.remove('hidden');
+    box.innerHTML = `
+      <div onclick="bookFreedWaitlistSlot('${w._id}')" class="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-between cursor-pointer hover:bg-emerald-500/25 transition">
+        <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500 text-[#0d0e12] flex items-center justify-center text-xs font-black shrink-0">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div class="min-w-0">
+            <span class="text-[11px] font-extrabold text-emerald-300 block truncate">Vaga Liberada na Lista de Espera! (${d}/${m}/${y} às ${w.freedTime || 'Horário Livre'})</span>
+            <span class="text-[10px] text-zinc-200 block truncate">Vagou um horário para ${w.serviceName}! Toque para agendar com 1 clique.</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-extrabold text-emerald-300 shrink-0 ml-2">Agendar →</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (pendingSurveys && pendingSurveys.length > 0) {
+    const app = pendingSurveys[0];
+    box.classList.remove('hidden');
+    box.innerHTML = `
+      <div onclick="openSatisfactionModal('${app._id}')" class="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-between cursor-pointer hover:bg-amber-500/25 transition">
+        <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-400 text-[#0d0e12] flex items-center justify-center text-xs font-black shrink-0">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div class="min-w-0">
+            <span class="text-[11px] font-extrabold text-amber-300 block truncate">Pesquisa de Satisfação • Ganhe +5 Pontos!</span>
+            <span class="text-[10px] text-zinc-200 block truncate">Como foi seu atendimento de ${app.serviceName} com ${app.barberName}? Avalie agora.</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-extrabold text-amber-300 shrink-0 ml-2">Avaliar ⭐</span>
+      </div>
+    `;
+    return;
+  }
+
   if (!promos || promos.length === 0) {
     box.classList.add('hidden');
     return;
@@ -1055,8 +1414,48 @@ async function openClientNotificationsModal() {
     persistLocalData();
   }
 
-  const { upcomingApps, promos } = getClientRemindersAndPromos();
+  const { upcomingApps, promos, waitlistAlerts, returnMessages, pendingSurveys } = getClientRemindersAndPromos();
   let html = '';
+
+  // 0. Alertas de Vaga Liberada na Lista de Espera
+  if (waitlistAlerts && waitlistAlerts.length > 0) {
+    html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 pt-1">🎉 Vaga Liberada na Lista de Espera!</div>`;
+    waitlistAlerts.forEach(w => {
+      const [y, m, d] = (w.date || '').split('-');
+      html += `
+        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500 text-[#0d0e12]">VAGA DISPONÍVEL AGORA</span>
+            <span class="text-[10px] text-emerald-300 font-bold">${d}/${m}/${y} às ${w.freedTime || 'Horário Livre'}</span>
+          </div>
+          <p class="font-extrabold text-white text-xs">Surgiu uma vaga para ${w.serviceName} com ${w.barberName}!</p>
+          <p class="text-[11px] text-zinc-300">Como você estava na Lista de Espera deste dia, avisamos você automaticamente.</p>
+          <button onclick="closeClientNotificationsModal(); bookFreedWaitlistSlot('${w._id}');" class="w-full py-2 rounded-xl btn-lux-primary text-[11px] font-extrabold">
+            Agendar Este Horário Agora
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  // 0.5 Pesquisas de Satisfação Pendentes
+  if (pendingSurveys && pendingSurveys.length > 0) {
+    html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 pt-1">⭐ Pesquisa de Satisfação Pendente</div>`;
+    pendingSurveys.forEach(a => {
+      html += `
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/35 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-white text-xs">${a.serviceName}</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">+5 pts Fidelidade</span>
+          </div>
+          <p class="text-[11px] text-zinc-300">Conte como foi seu atendimento com <b>${a.barberName}</b> e ganhe pontos!</p>
+          <button onclick="closeClientNotificationsModal(); openSatisfactionModal('${a._id}');" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#0d0e12] text-[11px] font-extrabold transition">
+            Responder Avaliação (1 a 5 Estrelas)
+          </button>
+        </div>
+      `;
+    });
+  }
 
   // 1. Lembretes de Horários Agendados
   if (upcomingApps.length > 0) {
@@ -1078,7 +1477,28 @@ async function openClientNotificationsModal() {
     });
   }
 
-  // 2. Promoções, Eventos e Notícias da Barbearia
+  // 2. Mensagens de Retorno Automáticas
+  if (returnMessages && returnMessages.length > 0) {
+    html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-sky-400 pt-2">🔄 Lembretes Automáticos de Retorno</div>`;
+    returnMessages.forEach(rm => {
+      html += `
+        <div class="p-3.5 rounded-2xl bg-[#141720] border border-sky-500/30 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-white text-xs">${rm.serviceName}</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 font-bold">Ciclo de ${rm.daysAfter} dias</span>
+          </div>
+          <p class="text-[11px] text-zinc-300 leading-relaxed">${rm.personalizedText}</p>
+          <div class="flex justify-end pt-1">
+            <button onclick="closeClientNotificationsModal(); openBookingService('${rm.serviceId}');" class="text-[10px] font-extrabold text-[#e5a769] hover:underline">
+              Agendar Retorno Agora →
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // 3. Promoções, Eventos e Notícias da Barbearia
   if (promos.length > 0) {
     html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-[#e5a769] pt-2">📢 Eventos, Notícias & Promoções</div>`;
     promos.forEach(p => {
@@ -1938,10 +2358,13 @@ function loadMyBookings() {
     return;
   }
 
+  renderClientWaitlistInMyBookings();
+
   container.innerHTML = filtered.map(item => {
     const [y, m, d] = (item.date || '').split('-');
     const isCancelled = item.status === 'cancelled';
     const isCompleted = item.status === 'completed';
+    const existingReview = (state.reviews || []).find(r => r.appointmentId === item._id);
 
     let badgeHtml = `<span class="text-[9px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Confirmado</span>`;
     if (isCompleted) {
@@ -1968,15 +2391,22 @@ function loadMyBookings() {
           <span class="font-bold text-[#e5a769] truncate pr-2"><i class="fa-solid fa-scissors text-[9px] mr-1"></i>${item.serviceName}</span>
           <span class="font-black text-white shrink-0">R$ ${Number(item.price || 0).toFixed(2).replace('.', ',')}</span>
         </div>
-        <div class="flex items-center justify-between pt-0.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
           <span class="text-[10px] text-sky-400 font-medium">
             <i class="fa-solid fa-bell mr-1"></i>Lembrete: Push + E-mail ativo
           </span>
-          ${!isCancelled && !isCompleted ? `
-            <button onclick="cancelClientBooking('${item._id}')" class="px-3 py-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-[10px] font-bold transition">
-              <i class="fa-solid fa-xmark mr-1"></i>Desmarcar
-            </button>
-          ` : ''}
+          <div class="flex items-center space-x-1.5">
+            ${isCompleted && state.satisfactionEnabled ? (
+              existingReview
+                ? `<span class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold"><i class="fa-solid fa-star mr-1"></i>Avaliado (${existingReview.rating}/5)</span>`
+                : `<button onclick="openSatisfactionModal('${item._id}')" class="px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[10px] font-extrabold transition"><i class="fa-solid fa-star mr-1"></i>Avaliar Atendimento</button>`
+            ) : ''}
+            ${!isCancelled && !isCompleted ? `
+              <button onclick="cancelClientBooking('${item._id}')" class="px-3 py-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-[10px] font-bold transition">
+                <i class="fa-solid fa-xmark mr-1"></i>Desmarcar
+              </button>
+            ` : ''}
+          </div>
         </div>
       </div>
     `;
@@ -1997,6 +2427,10 @@ async function cancelClientBooking(appId) {
   if (!confirmed) return;
 
   item.status = 'cancelled';
+
+  // Lista de Espera Automática: avisa clientes que aguardavam vaga neste dia!
+  const notifiedCount = notifyWaitlistForFreedSlot(item.date, item.time, item.barberId, item.barberName);
+
   persistLocalData();
   try {
     await fetch(`${API_BASE}/appointments/${appId}/status`, {
@@ -2010,15 +2444,29 @@ async function cancelClientBooking(appId) {
   updateClientNotificationBadge();
   await showLuxAlert({
     title: 'Horário Desmarcado',
-    message: 'Seu agendamento foi cancelado e a vaga foi liberada automaticamente na agenda.',
+    message: notifiedCount > 0
+      ? `Seu agendamento foi cancelado e ${notifiedCount} cliente(s) da Lista de Espera deste dia foram avisados automaticamente!`
+      : 'Seu agendamento foi cancelado e a vaga foi liberada automaticamente na agenda.',
     type: 'info'
   });
 }
 
 // ========================================================
-// 5. PAINEL DO ADMINISTRADOR (8 ABAS COMPLETAS)
+// 5. PAINEL DO ADMINISTRADOR (11 ABAS COMPLETAS)
 // ========================================================
-const ADMIN_SUB_TABS = ['agenda', 'services', 'barbers', 'finance', 'promotions', 'reports', 'users', 'settings'];
+const ADMIN_SUB_TABS = [
+  'agenda',
+  'services',
+  'packages',
+  'inventory',
+  'barbers',
+  'finance',
+  'crm',
+  'promotions',
+  'reports',
+  'users',
+  'settings'
+];
 
 function switchAdminSubTab(sub) {
   state.currentAdminTab = sub;
@@ -2043,10 +2491,14 @@ function switchAdminSubTab(sub) {
 
 function renderAdminDashboard() {
   renderAdminReminderSettingsForm();
+  renderAdminWaitlist();
   renderAdminAgenda();
   renderAdminServicesList();
+  renderAdminPackages();
+  renderAdminInventory();
   renderAdminBarbersList();
   renderAdminFinance();
+  renderAdminCrm();
   renderAdminPromotions();
   renderAdminReports();
   renderAdminUsersList();
@@ -2422,8 +2874,14 @@ async function adminUpdateAppStatus(appId, status) {
   }
 
   item.status = status;
+  let notifiedWaitlist = 0;
+  let earnedPoints = 0;
 
-  // Se concluído, integra automaticamente com a Gestão Financeira (Caixa)
+  if (status === 'cancelled') {
+    notifiedWaitlist = notifyWaitlistForFreedSlot(item.date, item.time, item.barberId, item.barberName);
+  }
+
+  // Se concluído, integra automaticamente com a Gestão Financeira (Caixa) + Programa de Fidelidade + Pesquisa de Satisfação
   if (status === 'completed') {
     const alreadyInFinance = state.finance.transactions.some(t => t.appointmentId === item._id);
     if (!alreadyInFinance) {
@@ -2450,6 +2908,18 @@ async function adminUpdateAppStatus(appId, status) {
           body: JSON.stringify(tx)
         });
       } catch (e) {}
+
+      // Credita pontos de Fidelidade automaticamente ao cliente!
+      const ptsPerSvc = Number(state.loyalty?.pointsPerService || 10);
+      const ptsPer10 = Number(state.loyalty?.pointsPer10Reais || 1);
+      earnedPoints = ptsPerSvc + Math.floor(gross / 10) * ptsPer10;
+      awardLoyaltyPoints(
+        item.userId,
+        item.clientName,
+        item.clientEmail,
+        earnedPoints,
+        `Atendimento Concluído: ${item.serviceName}`
+      );
     }
   }
 
@@ -2462,13 +2932,18 @@ async function adminUpdateAppStatus(appId, status) {
     });
   } catch (e) {}
   renderAdminAgenda();
+  renderAdminWaitlist();
   renderAdminFinance();
+  renderAdminCrm();
+  updateClientNotificationBadge();
 
   await showLuxAlert({
-    title: status === 'completed' ? 'Atendimento Concluído & Lançado no Caixa!' : 'Agendamento Cancelado',
+    title: status === 'completed' ? 'Atendimento Concluído, Caixa & Fidelidade!' : 'Agendamento Cancelado',
     message: status === 'completed'
-      ? `O atendimento de ${item.clientName} (R$ ${Number(item.price).toFixed(2)}) foi concluído e somado automaticamente ao Fluxo de Caixa.`
-      : `O horário de ${item.clientName} foi cancelado.`,
+      ? `Atendimento de ${item.clientName} (R$ ${Number(item.price).toFixed(2)}) lançado no Caixa, +${earnedPoints} pontos de Fidelidade creditados e Pesquisa de Satisfação liberada para o cliente!`
+      : notifiedWaitlist > 0
+        ? `O horário foi cancelado e ${notifiedWaitlist} cliente(s) da Lista de Espera foram avisados automaticamente!`
+        : `O horário de ${item.clientName} foi cancelado.`,
     type: status === 'completed' ? 'success' : 'warning'
   });
 }
@@ -4167,7 +4642,7 @@ async function switchTab(tab) {
     document.body.classList.remove('auth-mode');
   }
 
-  const views = ['login', 'home', 'booking', 'my-bookings', 'about', 'profile', 'admin'];
+  const views = ['login', 'home', 'booking', 'my-bookings', 'loyalty', 'about', 'profile', 'admin'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) {
@@ -4188,12 +4663,13 @@ async function switchTab(tab) {
   const navMap = {
     home: 'home',
     'my-bookings': 'bookings',
+    loyalty: 'loyalty',
     about: 'about',
     profile: 'profile',
     admin: 'profile'
   };
 
-  ['home', 'bookings', 'about', 'profile'].forEach(t => {
+  ['home', 'bookings', 'loyalty', 'about', 'profile'].forEach(t => {
     const btn = document.getElementById(`nav-item-${t}`);
     if (btn) {
       if (navMap[tab] === t) {
@@ -4205,6 +4681,7 @@ async function switchTab(tab) {
   });
 
   if (tab === 'my-bookings') loadMyBookings();
+  if (tab === 'loyalty') renderClientLoyaltyAndPackages();
   if (tab === 'profile') renderUserProfile();
   if (tab === 'admin') renderAdminDashboard();
   if (tab === 'home') {
@@ -4212,3 +4689,1483 @@ async function switchTab(tab) {
     renderHomeBarbers();
   }
 }
+
+// ========================================================
+// 7. MÓDULO: PACOTES DE SERVIÇOS E PRODUTOS
+// (Controle de Sessões Utilizadas x Compradas + Receita Antecipada)
+// ========================================================
+function renderAdminPackages() {
+  const tplList = document.getElementById('admin-packages-templates-list');
+  const clientPkgList = document.getElementById('admin-client-packages-list');
+  const clientSel = document.getElementById('assign-pkg-client');
+  const tplSel = document.getElementById('assign-pkg-template');
+  const countBadge = document.getElementById('admin-client-pkgs-count');
+
+  if (clientSel) {
+    clientSel.innerHTML = state.users.map(u => `<option value="${u._id}">${u.name} (${u.email})</option>`).join('');
+  }
+  if (tplSel) {
+    tplSel.innerHTML = (state.packages || []).map(p => `<option value="${p._id}">${p.name} - R$ ${Number(p.price).toFixed(2)} (${p.totalSessions} sessões)</option>`).join('');
+  }
+  if (countBadge) {
+    countBadge.textContent = `${(state.clientPackages || []).length} pacotes ativos`;
+  }
+
+  if (tplList) {
+    if (!state.packages || state.packages.length === 0) {
+      tplList.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhum pacote cadastrado no catálogo.</div>`;
+    } else {
+      tplList.innerHTML = state.packages.map(p => {
+        const economy = Math.max(0, Number(p.originalPrice || p.price) - Number(p.price || 0));
+        return `
+          <div class="p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between text-xs">
+            <div class="min-w-0 pr-2">
+              <div class="flex items-center space-x-2">
+                <span class="font-extrabold text-white truncate">${p.name}</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#e5a769]/20 text-[#e5a769] font-bold">${p.totalSessions} sessões</span>
+              </div>
+              <p class="text-[10px] text-zinc-400 truncate mt-0.5">${p.itemsDesc}</p>
+              <div class="flex items-center space-x-2 mt-1 text-[10px]">
+                <span class="text-zinc-500 line-through">R$ ${Number(p.originalPrice || p.price).toFixed(2).replace('.', ',')}</span>
+                <span class="font-black text-emerald-400">Por R$ ${Number(p.price).toFixed(2).replace('.', ',')}</span>
+                ${economy > 0 ? `<span class="text-[9px] text-amber-300 font-bold">(Economia R$ ${economy.toFixed(0)})</span>` : ''}
+                <span class="text-[9px] text-[#e5a769] font-bold">• +${p.loyaltyPoints || 30} pts</span>
+              </div>
+            </div>
+            <button type="button" onclick="deleteAdminPackageTemplate('${p._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 flex items-center justify-center shrink-0">
+              <i class="fa-regular fa-trash-can text-[10px]"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  if (clientPkgList) {
+    if (!state.clientPackages || state.clientPackages.length === 0) {
+      clientPkgList.innerHTML = `<div class="p-6 text-center text-xs text-zinc-500">Nenhum pacote vendido ou atribuído a clientes ainda.</div>`;
+    } else {
+      clientPkgList.innerHTML = state.clientPackages.map(cp => {
+        const used = Number(cp.usedSessions || 0);
+        const total = Math.max(1, Number(cp.totalSessions || 1));
+        const remaining = Math.max(0, total - used);
+        const pct = Math.min(100, Math.round((used / total) * 100));
+        const isFinished = used >= total;
+
+        return `
+          <div class="admin-item-card p-3.5 space-y-2.5 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-extrabold text-white text-sm">${cp.clientName}</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${isFinished ? 'bg-zinc-700 text-zinc-300' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'}">
+                    ${isFinished ? 'Concluído (100% usado)' : `${remaining} restante(s)`}
+                  </span>
+                </div>
+                <span class="text-[11px] font-bold text-[#e5a769] block mt-0.5">${cp.packageName}</span>
+                <span class="text-[10px] text-zinc-400 block">${cp.itemsDesc || ''}</span>
+              </div>
+              <button type="button" onclick="deleteClientPackageAdmin('${cp._id}')" class="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                <i class="fa-regular fa-trash-can text-[10px]"></i>
+              </button>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="text-zinc-300 font-semibold">Sessões Utilizadas x Compradas: <b class="text-white">${used} / ${total}</b></span>
+                <span class="text-[#e5a769] font-bold">${pct}% utilizado</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-[#0b0d12] overflow-hidden border border-white/[0.06]">
+                <div class="h-full rounded-full ${isFinished ? 'bg-zinc-500' : 'btn-lux-primary'} transition-all duration-300" style="width:${pct}%"></div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[10px] text-zinc-500">Adquirido em: ${cp.purchasedAt} • Pago: <b class="text-emerald-400">R$ ${Number(cp.pricePaid || 0).toFixed(2).replace('.', ',')}</b></span>
+              ${!isFinished ? `
+                <button type="button" onclick="useClientPackageSession('${cp._id}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[10px] font-extrabold transition">
+                  <i class="fa-solid fa-check mr-1"></i>+1 Sessão Utilizada
+                </button>
+              ` : `
+                <span class="text-[10px] font-bold text-zinc-400"><i class="fa-solid fa-check-double mr-1 text-emerald-400"></i>Pacote Finalizado</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+async function saveAdminPackageTemplate() {
+  const name = document.getElementById('pkg-name')?.value.trim() || '';
+  const itemsDesc = document.getElementById('pkg-items-desc')?.value.trim() || '';
+  const totalSessions = parseInt(document.getElementById('pkg-sessions')?.value || '4', 10);
+  const originalPrice = parseFloat(document.getElementById('pkg-original-price')?.value || '0');
+  const price = parseFloat(document.getElementById('pkg-price')?.value || '0');
+  const loyaltyPoints = parseInt(document.getElementById('pkg-points')?.value || '30', 10);
+
+  if (!name || isNaN(price) || price <= 0) {
+    await showLuxAlert({
+      title: 'Preencha os Dados do Pacote',
+      message: 'Informe o nome do pacote e o preço promocional.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const newPkg = {
+    _id: `pkg_${Date.now()}`,
+    name,
+    itemsDesc: itemsDesc || `${totalSessions} sessões inclusas`,
+    totalSessions: isNaN(totalSessions) || totalSessions < 1 ? 4 : totalSessions,
+    originalPrice: isNaN(originalPrice) || originalPrice <= 0 ? price * 1.2 : originalPrice,
+    price,
+    loyaltyPoints: isNaN(loyaltyPoints) ? 30 : loyaltyPoints
+  };
+
+  state.packages.unshift(newPkg);
+  persistLocalData();
+
+  document.getElementById('pkg-name').value = '';
+  document.getElementById('pkg-items-desc').value = '';
+  document.getElementById('pkg-original-price').value = '';
+  document.getElementById('pkg-price').value = '';
+
+  renderAdminPackages();
+  await showLuxAlert({
+    title: 'Pacote Criado com Sucesso!',
+    message: `O pacote "${name}" (${newPkg.totalSessions} sessões por R$ ${price.toFixed(2)}) já está disponível para venda e no aplicativo do cliente!`,
+    type: 'success'
+  });
+}
+
+async function deleteAdminPackageTemplate(pkgId) {
+  const ok = await showLuxConfirm({
+    title: 'Excluir Modelo de Pacote?',
+    message: 'Deseja remover este modelo de pacote do catálogo?',
+    confirmText: 'Sim, Excluir',
+    danger: true
+  });
+  if (!ok) return;
+
+  state.packages = state.packages.filter(p => p._id !== pkgId);
+  persistLocalData();
+  renderAdminPackages();
+}
+
+async function assignPackageToClientAdmin() {
+  const userId = document.getElementById('assign-pkg-client')?.value;
+  const pkgId = document.getElementById('assign-pkg-template')?.value;
+
+  const user = state.users.find(u => u._id === userId);
+  const pkg = state.packages.find(p => p._id === pkgId);
+  if (!user || !pkg) {
+    await showLuxAlert({
+      title: 'Selecione Cliente e Pacote',
+      message: 'Escolha um cliente e um modelo de pacote para registrar a venda.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const nowDate = formatNowTimestamp().split(' ')[0];
+  const newCp = {
+    _id: `cp_${Date.now()}`,
+    packageId: pkg._id,
+    packageName: pkg.name,
+    itemsDesc: pkg.itemsDesc,
+    userId: user._id,
+    clientName: user.name,
+    clientEmail: user.email,
+    totalSessions: pkg.totalSessions,
+    usedSessions: 0,
+    pricePaid: pkg.price,
+    purchasedAt: nowDate,
+    history: []
+  };
+
+  state.clientPackages.unshift(newCp);
+
+  // Antecipa receita no Fluxo de Caixa Financeiro!
+  const tx = {
+    _id: `fin_pkg_${Date.now()}`,
+    title: `Venda de Pacote: ${pkg.name} - ${user.name}`,
+    type: 'income',
+    category: 'Serviços',
+    amount: Number(pkg.price),
+    paymentMethod: 'pix',
+    feePercent: 0,
+    feeAmount: 0,
+    netAmount: Number(pkg.price),
+    status: 'paid',
+    dueDate: formatDateISO(new Date())
+  };
+  state.finance.transactions.unshift(tx);
+
+  // Credita pontos bônus de fidelidade do pacote
+  awardLoyaltyPoints(user._id, user.name, user.email, Number(pkg.loyaltyPoints || 30), `Compra de Pacote: ${pkg.name}`);
+
+  persistLocalData();
+  renderAdminPackages();
+  renderAdminFinance();
+
+  await showLuxAlert({
+    title: 'Pacote Atribuído & Receita Lançada!',
+    message: `Pacote "${pkg.name}" ativado para ${user.name} (0/${pkg.totalSessions} sessões usadas). A receita de R$ ${Number(pkg.price).toFixed(2)} entrou no Caixa e +${pkg.loyaltyPoints || 30} pts foram creditados!`,
+    type: 'success'
+  });
+}
+
+async function buyPackageFromClientApp(pkgId) {
+  const pkg = state.packages.find(p => p._id === pkgId);
+  if (!pkg) return;
+
+  const user = state.currentUser;
+  if (!user) {
+    await showLuxAlert({
+      title: 'Faça Login',
+      message: 'Entre na sua conta para adquirir pacotes com desconto.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const confirmed = await showLuxConfirm({
+    title: 'Adquirir Pacote com Desconto?',
+    message: `Deseja adquirir "${pkg.name}" (${pkg.totalSessions} sessões) por R$ ${Number(pkg.price).toFixed(2).replace('.', ',')} e ganhar +${pkg.loyaltyPoints || 30} pontos de fidelidade?`,
+    confirmText: 'Sim, Adquirir Agora'
+  });
+  if (!confirmed) return;
+
+  const nowDate = formatNowTimestamp().split(' ')[0];
+  const newCp = {
+    _id: `cp_${Date.now()}`,
+    packageId: pkg._id,
+    packageName: pkg.name,
+    itemsDesc: pkg.itemsDesc,
+    userId: user._id,
+    clientName: user.name,
+    clientEmail: user.email,
+    totalSessions: pkg.totalSessions,
+    usedSessions: 0,
+    pricePaid: pkg.price,
+    purchasedAt: nowDate,
+    history: []
+  };
+
+  state.clientPackages.unshift(newCp);
+
+  // Lança receita antecipada no Caixa da Barbearia
+  state.finance.transactions.unshift({
+    _id: `fin_pkg_${Date.now()}`,
+    title: `Pacote App: ${pkg.name} - ${user.name}`,
+    type: 'income',
+    category: 'Serviços',
+    amount: Number(pkg.price),
+    paymentMethod: 'pix',
+    feePercent: 0,
+    feeAmount: 0,
+    netAmount: Number(pkg.price),
+    status: 'paid',
+    dueDate: formatDateISO(new Date())
+  });
+
+  awardLoyaltyPoints(user._id, user.name, user.email, Number(pkg.loyaltyPoints || 30), `Pacote Adquirido: ${pkg.name}`);
+
+  persistLocalData();
+  renderClientLoyaltyAndPackages();
+
+  await showLuxAlert({
+    title: 'Pacote Ativado com Sucesso!',
+    message: `Você agora possui ${pkg.totalSessions} sessões disponíveis em "${pkg.name}" e ganhou +${pkg.loyaltyPoints || 30} pontos no Programa de Fidelidade!`,
+    type: 'success'
+  });
+}
+
+async function useClientPackageSession(cpId) {
+  const cp = state.clientPackages.find(item => item._id === cpId);
+  if (!cp) return;
+
+  if (cp.usedSessions >= cp.totalSessions) {
+    await showLuxAlert({
+      title: 'Pacote Concluído',
+      message: 'Todas as sessões deste pacote já foram utilizadas.',
+      type: 'info'
+    });
+    return;
+  }
+
+  cp.usedSessions = Number(cp.usedSessions || 0) + 1;
+  if (!Array.isArray(cp.history)) cp.history = [];
+  cp.history.push(formatNowTimestamp());
+
+  persistLocalData();
+  renderAdminPackages();
+  renderClientLoyaltyAndPackages();
+
+  await showLuxAlert({
+    title: 'Sessão Contabilizada!',
+    message: `Sessão registrada para ${cp.clientName} no pacote "${cp.packageName}". Progresso atual: ${cp.usedSessions}/${cp.totalSessions} sessões utilizadas.`,
+    type: 'success'
+  });
+}
+
+async function deleteClientPackageAdmin(cpId) {
+  const ok = await showLuxConfirm({
+    title: 'Remover Pacote de Cliente?',
+    message: 'Deseja excluir o registro deste pacote?',
+    confirmText: 'Sim, Excluir',
+    danger: true
+  });
+  if (!ok) return;
+
+  state.clientPackages = state.clientPackages.filter(item => item._id !== cpId);
+  persistLocalData();
+  renderAdminPackages();
+}
+
+// ========================================================
+// 8. MÓDULO: GESTÃO DE ESTOQUE (BAR & COSMÉTICOS)
+// (Saldo, Histórico Entrada/Saída, Custo, Lucro, Alerta Estoque Baixo, Validade e Inventário)
+// ========================================================
+function renderAdminInventory() {
+  const totalItemsEl = document.getElementById('inv-stat-total-items');
+  const costValEl = document.getElementById('inv-stat-cost-value');
+  const saleValEl = document.getElementById('inv-stat-sale-value');
+  const profitEl = document.getElementById('inv-stat-projected-profit');
+  const alertsBox = document.getElementById('inv-alerts-box');
+  const prodList = document.getElementById('admin-inventory-list');
+  const movList = document.getElementById('admin-inventory-movements-list');
+  const movProdSel = document.getElementById('inv-mov-product');
+
+  const items = state.inventory || [];
+  let totalUnits = 0;
+  let totalCost = 0;
+  let totalSale = 0;
+  const lowStockItems = [];
+  const expiringItems = [];
+
+  const today = new Date();
+  const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  items.forEach(p => {
+    const q = Number(p.quantity || 0);
+    const minQ = Number(p.minQty || 3);
+    const c = Number(p.costPrice || 0);
+    const s = Number(p.salePrice || 0);
+
+    totalUnits += q;
+    totalCost += q * c;
+    totalSale += q * s;
+
+    if (q <= minQ) {
+      lowStockItems.push(p);
+    }
+    if (p.expiryDate) {
+      const [y, m, d] = p.expiryDate.split('-').map(Number);
+      const expDt = new Date(y, m - 1, d);
+      if (expDt <= in30Days) {
+        expiringItems.push({ ...p, isExpired: expDt < today });
+      }
+    }
+  });
+
+  const projectedProfit = Math.max(0, totalSale - totalCost);
+
+  if (totalItemsEl) totalItemsEl.textContent = `${totalUnits} un (${items.length} prod.)`;
+  if (costValEl) costValEl.textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+  if (saleValEl) saleValEl.textContent = `R$ ${totalSale.toFixed(2).replace('.', ',')}`;
+  if (profitEl) profitEl.textContent = `R$ ${projectedProfit.toFixed(2).replace('.', ',')}`;
+
+  if (movProdSel) {
+    movProdSel.innerHTML = items.map(p => `<option value="${p._id}">${p.name} (Saldo: ${p.quantity})</option>`).join('');
+  }
+
+  // Avisos / Alertas de Estoque Baixo e Validade
+  if (alertsBox) {
+    if (lowStockItems.length === 0 && expiringItems.length === 0) {
+      alertsBox.classList.add('hidden');
+      alertsBox.innerHTML = '';
+    } else {
+      alertsBox.classList.remove('hidden');
+      let alertHtml = '';
+      lowStockItems.forEach(p => {
+        alertHtml += `
+          <div class="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2.5">
+              <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm"></i>
+              <div>
+                <span class="font-extrabold text-amber-300">Alerta de Estoque Baixo: ${p.name}</span>
+                <span class="text-[10px] text-zinc-300 block">Saldo atual: <b>${p.quantity} un</b> (Mínimo recomendado: ${p.minQty} un)</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-200">Repor Estoque</span>
+          </div>
+        `;
+      });
+      expiringItems.forEach(p => {
+        const [y, m, d] = (p.expiryDate || '').split('-');
+        alertHtml += `
+          <div class="p-3 rounded-2xl bg-red-500/15 border border-red-500/40 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2.5">
+              <i class="fa-regular fa-calendar-xmark text-red-400 text-sm"></i>
+              <div>
+                <span class="font-extrabold text-red-300">${p.isExpired ? 'PRODUTO VENCIDO' : 'Validade Próxima'}: ${p.name}</span>
+                <span class="text-[10px] text-zinc-300 block">Data de Validade: <b>${d}/${m}/${y}</b> • Saldo: ${p.quantity} un</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-red-500/25 text-red-200">Verificar Validade</span>
+          </div>
+        `;
+      });
+      alertsBox.innerHTML = alertHtml;
+    }
+  }
+
+  // Lista de Produtos com Custo, Venda, Lucro por Produto e Validade
+  if (prodList) {
+    if (items.length === 0) {
+      prodList.innerHTML = `<div class="p-6 text-center text-xs text-zinc-500">Nenhum produto cadastrado no estoque.</div>`;
+    } else {
+      prodList.innerHTML = items.map(p => {
+        const unitCost = Number(p.costPrice || 0);
+        const unitSale = Number(p.salePrice || 0);
+        const unitProfit = unitSale - unitCost;
+        const marginPct = unitCost > 0 ? Math.round((unitProfit / unitCost) * 100) : 100;
+        const isLow = Number(p.quantity || 0) <= Number(p.minQty || 3);
+        const [ey, em, ed] = (p.expiryDate || '').split('-');
+
+        return `
+          <div class="admin-item-card p-3.5 space-y-2 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="font-extrabold text-white text-xs md:text-sm">${p.name}</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 font-semibold">${p.category}</span>
+                  ${isLow ? `<span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⚠️ Estoque Baixo</span>` : ''}
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[10px]">
+                  <div class="p-1.5 rounded-lg bg-[#0d0f14] border border-white/[0.04]">
+                    <span class="text-zinc-500 block">Saldo Atual</span>
+                    <b class="text-sm ${isLow ? 'text-amber-400' : 'text-white'}">${p.quantity} un</b>
+                  </div>
+                  <div class="p-1.5 rounded-lg bg-[#0d0f14] border border-white/[0.04]">
+                    <span class="text-zinc-500 block">Custo / Venda</span>
+                    <b class="text-zinc-200">R$ ${unitCost.toFixed(2)} / R$ ${unitSale.toFixed(2)}</b>
+                  </div>
+                  <div class="p-1.5 rounded-lg bg-[#0d0f14] border border-white/[0.04]">
+                    <span class="text-zinc-500 block">Lucro p/ Produto</span>
+                    <b class="text-emerald-400">R$ ${unitProfit.toFixed(2)} (${marginPct}%)</b>
+                  </div>
+                  <div class="p-1.5 rounded-lg bg-[#0d0f14] border border-white/[0.04]">
+                    <span class="text-zinc-500 block">Validade</span>
+                    <b class="text-zinc-200">${ed ? `${ed}/${em}/${ey}` : 'Indeterminada'}</b>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col space-y-1.5 shrink-0">
+                <button type="button" onclick="editInventoryProduct('${p._id}')" class="w-7 h-7 rounded-lg bg-[#1c1f28] border border-white/[0.08] text-zinc-300 hover:text-[#e5a769] flex items-center justify-center">
+                  <i class="fa-solid fa-pen text-[10px]"></i>
+                </button>
+                <button type="button" onclick="deleteInventoryProduct('${p._id}')" class="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 flex items-center justify-center">
+                  <i class="fa-regular fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // Histórico de Movimentações de Entrada e Saída
+  if (movList) {
+    const movs = state.inventoryMovements || [];
+    if (movs.length === 0) {
+      movList.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhuma movimentação registrada.</div>`;
+    } else {
+      movList.innerHTML = movs.map(m => {
+        const isEntry = m.type === 'in';
+        const isSale = m.type === 'out_sale';
+        const badgeClass = isEntry
+          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+          : isSale
+            ? 'bg-[#e5a769]/20 text-[#e5a769] border-[#e5a769]/40'
+            : 'bg-red-500/15 text-red-400 border-red-500/30';
+        const label = isEntry ? '+ Entrada' : isSale ? '- Saída Venda' : '- Consumo Interno';
+
+        return `
+          <div class="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.05] flex items-center justify-between text-[11px]">
+            <div class="min-w-0 pr-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border ${badgeClass}">${label} (${m.qty} un)</span>
+                <span class="font-bold text-white truncate">${m.productName}</span>
+              </div>
+              <span class="text-[10px] text-zinc-400 block mt-0.5">${m.reason || 'Movimentação de estoque'} • ${m.date}</span>
+            </div>
+            <span class="font-extrabold ${isEntry ? 'text-amber-300' : isSale ? 'text-emerald-400' : 'text-zinc-400'} shrink-0">
+              ${isEntry ? `- R$ ${(m.qty * Number(m.unitCost || 0)).toFixed(2)}` : isSale ? `+ R$ ${(m.qty * Number(m.unitSale || 0)).toFixed(2)}` : `${m.qty} un`}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+async function saveInventoryProduct() {
+  const id = document.getElementById('inv-prod-id')?.value.trim() || '';
+  const name = document.getElementById('inv-name')?.value.trim() || '';
+  const category = document.getElementById('inv-category')?.value || 'Bar & Bebidas';
+  const quantity = parseInt(document.getElementById('inv-qty')?.value || '0', 10);
+  const minQty = parseInt(document.getElementById('inv-min-qty')?.value || '5', 10);
+  const costPrice = parseFloat(document.getElementById('inv-cost')?.value || '0');
+  const salePrice = parseFloat(document.getElementById('inv-price')?.value || '0');
+  const expiryDate = document.getElementById('inv-expiry')?.value || '';
+
+  if (!name || isNaN(costPrice)) {
+    await showLuxAlert({
+      title: 'Dados do Produto',
+      message: 'Informe pelo menos o nome do produto e o custo unitário.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const prodData = {
+    name,
+    category,
+    quantity: isNaN(quantity) ? 0 : quantity,
+    minQty: isNaN(minQty) ? 5 : minQty,
+    costPrice: isNaN(costPrice) ? 0 : costPrice,
+    salePrice: isNaN(salePrice) ? costPrice : salePrice,
+    expiryDate
+  };
+
+  if (id) {
+    const idx = state.inventory.findIndex(p => p._id === id);
+    if (idx >= 0) state.inventory[idx] = { ...state.inventory[idx], ...prodData };
+  } else {
+    const newProd = { _id: `inv_${Date.now()}`, ...prodData };
+    state.inventory.unshift(newProd);
+    state.inventoryMovements.unshift({
+      _id: `mov_${Date.now()}`,
+      productId: newProd._id,
+      productName: newProd.name,
+      type: 'in',
+      qty: newProd.quantity,
+      unitCost: newProd.costPrice,
+      unitSale: newProd.salePrice,
+      reason: 'Cadastro inicial no estoque',
+      date: formatNowTimestamp()
+    });
+  }
+
+  persistLocalData();
+  resetInventoryForm();
+  renderAdminInventory();
+
+  await showLuxAlert({
+    title: id ? 'Produto Atualizado!' : 'Produto Cadastrado no Estoque!',
+    message: `"${name}" foi salvo no inventário com cálculo automático de custo, lucro e controle de validade.`,
+    type: 'success'
+  });
+}
+
+function editInventoryProduct(prodId) {
+  const p = state.inventory.find(item => item._id === prodId);
+  if (!p) return;
+
+  document.getElementById('inv-prod-id').value = p._id;
+  document.getElementById('inv-name').value = p.name;
+  document.getElementById('inv-category').value = p.category || 'Bar & Bebidas';
+  document.getElementById('inv-qty').value = p.quantity;
+  document.getElementById('inv-min-qty').value = p.minQty;
+  document.getElementById('inv-cost').value = p.costPrice;
+  document.getElementById('inv-price').value = p.salePrice;
+  document.getElementById('inv-expiry').value = p.expiryDate || '';
+}
+
+function resetInventoryForm() {
+  const ids = ['inv-prod-id', 'inv-name', 'inv-qty', 'inv-min-qty', 'inv-cost', 'inv-price', 'inv-expiry'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+async function deleteInventoryProduct(prodId) {
+  const p = state.inventory.find(item => item._id === prodId);
+  const ok = await showLuxConfirm({
+    title: 'Excluir Produto do Estoque?',
+    message: `Deseja remover "${p ? p.name : 'este produto'}" do inventário?`,
+    confirmText: 'Sim, Excluir',
+    danger: true
+  });
+  if (!ok) return;
+
+  state.inventory = state.inventory.filter(item => item._id !== prodId);
+  persistLocalData();
+  renderAdminInventory();
+}
+
+async function moveInventoryStock() {
+  const prodId = document.getElementById('inv-mov-product')?.value;
+  const type = document.getElementById('inv-mov-type')?.value || 'out_sale';
+  const qty = parseInt(document.getElementById('inv-mov-qty')?.value || '1', 10);
+  const reason = document.getElementById('inv-mov-reason')?.value.trim() || '';
+
+  const prod = state.inventory.find(p => p._id === prodId);
+  if (!prod || isNaN(qty) || qty <= 0) {
+    await showLuxAlert({
+      title: 'Quantidade Inválida',
+      message: 'Selecione um produto e informe uma quantidade maior que zero.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  if (type !== 'in' && prod.quantity < qty) {
+    await showLuxAlert({
+      title: 'Saldo Insuficiente no Estoque',
+      message: `O produto "${prod.name}" possui apenas ${prod.quantity} unidade(s) disponível(is).`,
+      type: 'error'
+    });
+    return;
+  }
+
+  if (type === 'in') {
+    prod.quantity = Number(prod.quantity || 0) + qty;
+  } else {
+    prod.quantity = Math.max(0, Number(prod.quantity || 0) - qty);
+  }
+
+  const mov = {
+    _id: `mov_${Date.now()}`,
+    productId: prod._id,
+    productName: prod.name,
+    type,
+    qty,
+    unitCost: prod.costPrice,
+    unitSale: prod.salePrice,
+    reason: reason || (type === 'in' ? 'Entrada / Reposição de estoque' : type === 'out_sale' ? 'Venda para cliente' : 'Consumo interno na barbearia'),
+    date: formatNowTimestamp()
+  };
+  state.inventoryMovements.unshift(mov);
+
+  // Integra automaticamente com o Fluxo de Caixa Financeiro!
+  if (type === 'out_sale') {
+    const totalSale = qty * Number(prod.salePrice || 0);
+    state.finance.transactions.unshift({
+      _id: `fin_inv_${Date.now()}`,
+      title: `Venda Estoque (${qty}x ${prod.name})`,
+      type: 'income',
+      category: 'Produtos',
+      amount: totalSale,
+      paymentMethod: 'pix',
+      feePercent: 0,
+      feeAmount: 0,
+      netAmount: totalSale,
+      status: 'paid',
+      dueDate: formatDateISO(new Date())
+    });
+  } else if (type === 'in') {
+    const totalCost = qty * Number(prod.costPrice || 0);
+    state.finance.transactions.unshift({
+      _id: `fin_inv_${Date.now()}`,
+      title: `Reposição Estoque (${qty}x ${prod.name})`,
+      type: 'expense',
+      category: 'Produtos',
+      amount: totalCost,
+      paymentMethod: 'pix',
+      feePercent: 0,
+      feeAmount: 0,
+      netAmount: totalCost,
+      status: 'paid',
+      dueDate: formatDateISO(new Date())
+    });
+  }
+
+  const rInput = document.getElementById('inv-mov-reason');
+  if (rInput) rInput.value = '';
+
+  persistLocalData();
+  renderAdminInventory();
+  renderAdminFinance();
+
+  await showLuxAlert({
+    title: 'Movimentação Registrada!',
+    message: `${type === 'in' ? 'Entrada' : 'Saída'} de ${qty}x "${prod.name}" concluída. Saldo atual: ${prod.quantity} un.`,
+    type: 'success'
+  });
+}
+
+// ========================================================
+// 9. MÓDULO: LISTA DE ESPERA AUTOMÁTICA
+// (Cliente entra na lista do dia e é avisado automaticamente quando vagar horário)
+// ========================================================
+async function joinWaitlistForSelectedDate() {
+  const user = state.currentUser;
+  if (!user) {
+    await showLuxAlert({
+      title: 'Faça Login',
+      message: 'Entre na sua conta para entrar na Lista de Espera Automática.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const shift = document.getElementById('waitlist-preferred-shift')?.value || 'Qualquer horário';
+  const dateStr = state.selectedDate || formatDateISO(new Date());
+  const barber = state.selectedBarber || state.barbers[0];
+  const serviceName = state.selectedServices.length > 0
+    ? state.selectedServices.map(s => s.name).join(' + ')
+    : (state.services[0]?.name || 'Corte Degradê');
+
+  const already = (state.waitlist || []).find(
+    w => w.date === dateStr && (w.userId === user._id || (w.clientEmail || '').toLowerCase() === (user.email || '').toLowerCase()) && w.status === 'waiting'
+  );
+  if (already) {
+    await showLuxAlert({
+      title: 'Já na Lista de Espera',
+      message: 'Você já está inscrito na Lista de Espera para esta data. Assim que vagar um horário, avisaremos você automaticamente!',
+      type: 'info'
+    });
+    return;
+  }
+
+  const entry = {
+    _id: `wl_${Date.now()}`,
+    userId: user._id,
+    clientName: user.name,
+    clientEmail: user.email,
+    clientPhone: user.phone || '(11) 99999-9999',
+    barberId: barber._id,
+    barberName: barber.name,
+    serviceName,
+    date: dateStr,
+    preferredShift: shift,
+    status: 'waiting',
+    freedTime: null,
+    createdAt: formatNowTimestamp()
+  };
+
+  state.waitlist.unshift(entry);
+  persistLocalData();
+  updateClientNotificationBadge();
+
+  const [y, m, d] = dateStr.split('-');
+  await showLuxAlert({
+    title: 'Inscrito na Lista de Espera!',
+    message: `Você entrou na Lista de Espera do dia ${d}/${m}/${y} (${shift}). Se algum cliente desmarcar, o sistema avisará você automaticamente por Push Notification e no App para agendar sem interromper o barbeiro!`,
+    type: 'success'
+  });
+}
+
+function notifyWaitlistForFreedSlot(dateStr, freedTime, barberId, barberName) {
+  if (!Array.isArray(state.waitlist)) return 0;
+  let count = 0;
+  const nowStr = formatNowTimestamp();
+
+  state.waitlist.forEach(w => {
+    if (w.date === dateStr && w.status === 'waiting') {
+      w.status = 'notified';
+      w.freedTime = freedTime || '16:00';
+      w.notifiedAt = nowStr;
+      count++;
+    }
+  });
+
+  if (count > 0) {
+    const [y, m, d] = (dateStr || '').split('-');
+    triggerBrowserPushNotification(
+      `Vaga Liberada na Lista de Espera! • ${state.shop.name}`,
+      `Surgiu um horário livre em ${d}/${m}/${y} às ${freedTime} com ${barberName || 'Ricardo'}! Toque para agendar agora.`
+    );
+  }
+  return count;
+}
+
+async function manualNotifyWaitlistItem(wId) {
+  const w = (state.waitlist || []).find(item => item._id === wId);
+  if (!w) return;
+
+  w.status = 'notified';
+  w.freedTime = w.freedTime || '17:00';
+  w.notifiedAt = formatNowTimestamp();
+
+  persistLocalData();
+  renderAdminWaitlist();
+  updateClientNotificationBadge();
+  renderHomeActivePromoBanner();
+
+  const [y, m, d] = (w.date || '').split('-');
+  triggerBrowserPushNotification(
+    `Vaga Liberada! • ${state.shop.name}`,
+    `Olá ${w.clientName}, vagou um horário em ${d}/${m}/${y} às ${w.freedTime}!`
+  );
+
+  await showLuxAlert({
+    title: 'Cliente Avisado Automaticamente!',
+    message: `${w.clientName} recebeu o alerta de vaga disponível (${d}/${m}/${y} às ${w.freedTime}) para agendar pelo aplicativo.`,
+    type: 'success'
+  });
+}
+
+function bookFreedWaitlistSlot(wId) {
+  const w = (state.waitlist || []).find(item => item._id === wId);
+  if (!w) {
+    openQuickBooking();
+    return;
+  }
+
+  w.status = 'booked';
+  persistLocalData();
+
+  const barber = state.barbers.find(b => b._id === w.barberId) || state.barbers[0];
+  state.selectedBarber = barber;
+  state.selectedDate = w.date || formatDateISO(new Date());
+  updateSelectedDateLabels(state.selectedDate);
+  updateBookingUI();
+  renderBookingBarbers();
+  renderMiniCalendar();
+  renderBookingSlots();
+
+  if (w.freedTime) {
+    state.selectedTime = w.freedTime;
+  }
+  switchTab('booking');
+}
+
+async function removeWaitlistItem(wId) {
+  state.waitlist = (state.waitlist || []).filter(w => w._id !== wId);
+  persistLocalData();
+  renderClientWaitlistInMyBookings();
+  renderAdminWaitlist();
+  updateClientNotificationBadge();
+}
+
+function renderClientWaitlistInMyBookings() {
+  const box = document.getElementById('client-waitlist-container');
+  if (!box || !state.currentUser) return;
+
+  const user = state.currentUser;
+  const myWait = (state.waitlist || []).filter(
+    w => w.status !== 'booked' && (w.userId === user._id || (w.clientEmail || '').toLowerCase() === (user.email || '').toLowerCase())
+  );
+
+  if (myWait.length === 0) {
+    box.classList.add('hidden');
+    box.innerHTML = '';
+    return;
+  }
+
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <div class="admin-section-card p-4 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-extrabold text-amber-300"><i class="fa-solid fa-user-clock mr-1.5"></i>Sua Lista de Espera Automática</span>
+        <span class="text-[10px] text-zinc-400">${myWait.length} registro(s)</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        ${myWait.map(w => {
+          const [y, m, d] = (w.date || '').split('-');
+          const isNotified = w.status === 'notified';
+          return `
+            <div class="p-3 rounded-xl ${isNotified ? 'bg-emerald-500/15 border border-emerald-500/40' : 'bg-[#0e1015] border border-white/[0.06]'} flex items-center justify-between text-xs">
+              <div>
+                <span class="font-extrabold text-white block">${d}/${m}/${y} • ${w.preferredShift}</span>
+                <span class="text-[10px] text-zinc-400 block">${w.serviceName} (${w.barberName})</span>
+                <span class="text-[10px] font-bold ${isNotified ? 'text-emerald-400' : 'text-amber-400'}">
+                  ${isNotified ? `🎉 Vaga liberada às ${w.freedTime}!` : '⏳ Aguardando vaga automática'}
+                </span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                ${isNotified ? `
+                  <button onclick="bookFreedWaitlistSlot('${w._id}')" class="px-3 py-1.5 rounded-xl btn-lux-primary text-[10px] font-extrabold">
+                    Agendar Vaga
+                  </button>
+                ` : ''}
+                <button onclick="removeWaitlistItem('${w._id}')" class="w-7 h-7 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center">
+                  <i class="fa-solid fa-xmark text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderAdminWaitlist() {
+  const listEl = document.getElementById('admin-waitlist-list');
+  const badgeEl = document.getElementById('admin-waitlist-count-badge');
+  if (!listEl) return;
+
+  const list = state.waitlist || [];
+  if (badgeEl) {
+    badgeEl.textContent = `${list.length} cliente(s) na fila`;
+  }
+
+  if (list.length === 0) {
+    listEl.innerHTML = `<div class="col-span-full p-4 rounded-xl bg-[#0e1015] border border-white/[0.04] text-center text-[11px] text-zinc-500">Nenhum cliente aguardando na Lista de Espera no momento.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = list.map(w => {
+    const [y, m, d] = (w.date || '').split('-');
+    const isNotified = w.status === 'notified';
+    return `
+      <div class="p-3 rounded-xl bg-[#0e1015] border ${isNotified ? 'border-emerald-500/40' : 'border-amber-500/30'} flex flex-col justify-between gap-2 text-xs">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-white">${w.clientName}</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${isNotified ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-300'}">
+              ${isNotified ? 'Avisado Automaticamente' : 'Aguardando Vaga'}
+            </span>
+          </div>
+          <span class="text-[10px] text-zinc-400 block mt-0.5">${w.serviceName} • Data: <b>${d}/${m}/${y}</b> (${w.preferredShift})</span>
+        </div>
+        <div class="flex items-center justify-between pt-1.5 border-t border-white/[0.05]">
+          <button type="button" onclick="manualNotifyWaitlistItem('${w._id}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[10px] font-bold">
+            <i class="fa-solid fa-bell mr-1"></i>Avisar Vaga Agora
+          </button>
+          <button type="button" onclick="removeWaitlistItem('${w._id}')" class="text-[10px] text-red-400 hover:underline">
+            Remover
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========================================================
+// 10. MÓDULO: MENSAGENS DE RETORNO AUTOMÁTICAS, PESQUISA DE SATISFAÇÃO & PROGRAMA DE FIDELIDADE
+// ========================================================
+function renderAdminCrm() {
+  renderAdminReturnRules();
+  renderAdminSatisfactionReviews();
+  renderAdminLoyalty();
+}
+
+function renderAdminReturnRules() {
+  const svcSel = document.getElementById('ret-rule-service');
+  const listEl = document.getElementById('admin-return-rules-list');
+
+  if (svcSel) {
+    svcSel.innerHTML = state.services.map(s => `<option value="${s._id}">${s.name}</option>`).join('');
+  }
+  if (!listEl) return;
+
+  const rules = state.returnRules || [];
+  if (rules.length === 0) {
+    listEl.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhuma regra automática de retorno configurada.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = rules.map(r => `
+    <div class="p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1.5 text-xs">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="font-extrabold text-white">${r.serviceName}</span>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold">Retorno: ${r.daysAfter} dias</span>
+        </div>
+        <button type="button" onclick="deleteReturnRuleAdmin('${r._id}')" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
+          <i class="fa-regular fa-trash-can text-[10px]"></i>
+        </button>
+      </div>
+      <p class="text-[11px] text-zinc-300">${r.message}</p>
+      ${r.lastTriggeredAt ? `<span class="text-[9px] text-emerald-400 block"><i class="fa-solid fa-check-double mr-1"></i>Último disparo automático: ${r.lastTriggeredAt}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+async function saveReturnRuleAdmin() {
+  const serviceId = document.getElementById('ret-rule-service')?.value || state.services[0]?._id;
+  const daysAfter = parseInt(document.getElementById('ret-rule-days')?.value || '15', 10);
+  const message = document.getElementById('ret-rule-msg')?.value.trim() || '';
+
+  const svc = state.services.find(s => s._id === serviceId) || state.services[0];
+  const rule = {
+    _id: `ret_${Date.now()}`,
+    serviceId: svc._id,
+    serviceName: svc.name,
+    daysAfter: isNaN(daysAfter) || daysAfter < 1 ? 15 : daysAfter,
+    message: message || `Olá {cliente}! Já completou ${daysAfter} dias do seu último ${svc.name} na ${state.shop.name}. Agende seu retorno hoje mesmo!`,
+    lastTriggeredAt: formatNowTimestamp()
+  };
+
+  state.returnRules.unshift(rule);
+  persistLocalData();
+
+  const msgEl = document.getElementById('ret-rule-msg');
+  if (msgEl) msgEl.value = '';
+
+  renderAdminReturnRules();
+  updateClientNotificationBadge();
+
+  await showLuxAlert({
+    title: 'Regra de Retorno Ativada!',
+    message: `Clientes que realizarem "${svc.name}" receberão automaticamente o lembrete de retorno em ${rule.daysAfter} dias.`,
+    type: 'success'
+  });
+}
+
+async function deleteReturnRuleAdmin(ruleId) {
+  state.returnRules = (state.returnRules || []).filter(r => r._id !== ruleId);
+  persistLocalData();
+  renderAdminReturnRules();
+}
+
+async function triggerReturnMessagesNow() {
+  const nowStr = formatNowTimestamp();
+  (state.returnRules || []).forEach(r => {
+    r.lastTriggeredAt = nowStr;
+  });
+  persistLocalData();
+  renderAdminReturnRules();
+  updateClientNotificationBadge();
+
+  triggerBrowserPushNotification(
+    `Hora de Renovar o Visual! • ${state.shop.name}`,
+    `Sentimos sua falta! Já está no dia do seu retorno. Agende seu horário pelo aplicativo!`
+  );
+
+  await showLuxAlert({
+    title: 'Mensagens de Retorno Disparadas!',
+    message: `O ciclo automático enviou ${state.returnRules.length} regra(s) de retorno para os clientes elegíveis via Push + Central do App.`,
+    type: 'success'
+  });
+}
+
+// --- PESQUISA DE SATISFAÇÃO ---
+function toggleSatisfactionEnabled() {
+  const chk = document.getElementById('crm-satisfaction-enabled');
+  state.satisfactionEnabled = chk ? Boolean(chk.checked) : true;
+  persistLocalData();
+}
+
+function openSatisfactionModal(appId) {
+  const app = state.appointments.find(a => a._id === appId);
+  if (!app) return;
+
+  const modal = document.getElementById('modal-satisfaction-survey');
+  const idInp = document.getElementById('survey-appointment-id');
+  const infoEl = document.getElementById('survey-service-info');
+  const commentEl = document.getElementById('survey-comment');
+
+  if (idInp) idInp.value = app._id;
+  if (infoEl) infoEl.textContent = `${app.serviceName} com ${app.barberName}`;
+  if (commentEl) commentEl.value = '';
+
+  selectSurveyRating(5);
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeSatisfactionModal() {
+  const modal = document.getElementById('modal-satisfaction-survey');
+  if (modal) modal.classList.add('hidden');
+}
+
+function selectSurveyRating(stars) {
+  state.surveyCurrentRating = stars;
+  document.querySelectorAll('#survey-stars-row .survey-star-btn').forEach((btn, idx) => {
+    if (idx < stars) {
+      btn.className = 'survey-star-btn text-2xl text-amber-400 hover:scale-110 transition';
+    } else {
+      btn.className = 'survey-star-btn text-2xl text-zinc-600 hover:scale-110 transition';
+    }
+  });
+}
+
+async function submitSatisfactionSurvey() {
+  const appId = document.getElementById('survey-appointment-id')?.value;
+  const comment = document.getElementById('survey-comment')?.value.trim() || 'Excelente atendimento!';
+  const app = state.appointments.find(a => a._id === appId);
+  const user = state.currentUser;
+
+  const newRev = {
+    _id: `rev_${Date.now()}`,
+    appointmentId: app ? app._id : `app_${Date.now()}`,
+    clientName: user ? user.name : (app ? app.clientName : 'Cliente'),
+    clientEmail: user ? user.email : (app ? app.clientEmail : ''),
+    barberName: app ? app.barberName : 'Ricardo',
+    serviceName: app ? app.serviceName : 'Atendimento',
+    rating: state.surveyCurrentRating || 5,
+    comment,
+    createdAt: formatNowTimestamp()
+  };
+
+  state.reviews.unshift(newRev);
+
+  if (user) {
+    awardLoyaltyPoints(user._id, user.name, user.email, 5, 'Bônus por responder Pesquisa de Satisfação');
+  }
+
+  persistLocalData();
+  closeSatisfactionModal();
+  loadMyBookings();
+  updateClientNotificationBadge();
+  renderHomeActivePromoBanner();
+
+  await showLuxAlert({
+    title: 'Avaliação Enviada! (+5 Pontos)',
+    message: 'Muito obrigado pelo seu feedback! Sua resposta ajuda a manter nossa excelência e você ganhou +5 pontos no Programa de Fidelidade.',
+    type: 'success'
+  });
+}
+
+function renderAdminSatisfactionReviews() {
+  const avgScoreEl = document.getElementById('crm-avg-score');
+  const totalRevEl = document.getElementById('crm-total-reviews');
+  const chkEl = document.getElementById('crm-satisfaction-enabled');
+  const listEl = document.getElementById('admin-reviews-list');
+
+  if (chkEl) chkEl.checked = Boolean(state.satisfactionEnabled);
+
+  const revs = state.reviews || [];
+  const avg = revs.length > 0
+    ? (revs.reduce((acc, r) => acc + Number(r.rating || 5), 0) / revs.length).toFixed(1)
+    : '5.0';
+
+  if (avgScoreEl) avgScoreEl.textContent = `${avg} ⭐`;
+  if (totalRevEl) totalRevEl.textContent = `${revs.length} avaliação(ões) recebida(s)`;
+  if (!listEl) return;
+
+  if (revs.length === 0) {
+    listEl.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhuma pesquisa de satisfação respondida ainda.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = revs.map(r => {
+    const starsHtml = '⭐'.repeat(Math.max(1, Math.min(5, Number(r.rating || 5))));
+    return `
+      <div class="p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1.5 text-xs">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-extrabold text-white">${r.clientName}</span>
+            <span class="text-[10px] text-amber-400 ml-1.5">${starsHtml} (${r.rating}/5)</span>
+          </div>
+          <span class="text-[9px] text-zinc-500">${r.createdAt}</span>
+        </div>
+        <p class="text-[10px] text-[#e5a769] font-semibold">${r.serviceName} • Profissional: ${r.barberName}</p>
+        <p class="text-[11px] text-zinc-300 italic">"${r.comment}"</p>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- PROGRAMA DE FIDELIDADE (PONTOS, PRÊMIOS E RESGATES) ---
+function renderAdminLoyalty() {
+  const ptsSvcEl = document.getElementById('loy-pts-per-service');
+  const pts10El = document.getElementById('loy-pts-per-10reais');
+  const rewListEl = document.getElementById('admin-loyalty-rewards-list');
+  const redListEl = document.getElementById('admin-loyalty-redemptions-list');
+
+  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
+
+  if (ptsSvcEl) ptsSvcEl.value = state.loyalty.pointsPerService || 10;
+  if (pts10El) pts10El.value = state.loyalty.pointsPer10Reais || 1;
+
+  if (rewListEl) {
+    const rewards = state.loyalty.rewards || [];
+    rewListEl.innerHTML = rewards.map(rw => `
+      <div class="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between text-xs">
+        <div>
+          <span class="font-extrabold text-white block">${rw.title}</span>
+          <span class="text-[10px] text-[#e5a769] font-bold"><i class="fa-solid fa-crown mr-1"></i>${rw.pointsCost} pontos • ${rw.category || 'Prêmio'}</span>
+        </div>
+        <button type="button" onclick="deleteLoyaltyRewardAdmin('${rw._id}')" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
+          <i class="fa-regular fa-trash-can text-[10px]"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  if (redListEl) {
+    const reds = state.loyalty.redemptions || [];
+    if (reds.length === 0) {
+      redListEl.innerHTML = `<div class="p-3 text-center text-[11px] text-zinc-500">Nenhum resgate solicitado ainda.</div>`;
+    } else {
+      redListEl.innerHTML = reds.map(rd => `
+        <div class="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between text-xs">
+          <div>
+            <span class="font-extrabold text-white block">${rd.clientName} → <span class="text-[#e5a769]">${rd.rewardTitle}</span></span>
+            <span class="text-[10px] text-zinc-400">${rd.pointsCost} pts • ${rd.date}</span>
+          </div>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+            Resgatado
+          </span>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+async function saveLoyaltyConfigAdmin() {
+  const ptsSvc = parseInt(document.getElementById('loy-pts-per-service')?.value || '10', 10);
+  const pts10 = parseInt(document.getElementById('loy-pts-per-10reais')?.value || '1', 10);
+
+  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
+  state.loyalty.pointsPerService = isNaN(ptsSvc) ? 10 : ptsSvc;
+  state.loyalty.pointsPer10Reais = isNaN(pts10) ? 1 : pts10;
+
+  persistLocalData();
+  await showLuxAlert({
+    title: 'Regras de Fidelidade Salvas!',
+    message: `Clientes agora ganham ${state.loyalty.pointsPerService} pontos por atendimento concluído + ${state.loyalty.pointsPer10Reais} ponto(s) a cada R$ 10 gastos.`,
+    type: 'success'
+  });
+}
+
+async function addLoyaltyRewardAdmin() {
+  const title = document.getElementById('loy-reward-title')?.value.trim() || '';
+  const pointsCost = parseInt(document.getElementById('loy-reward-cost')?.value || '50', 10);
+  const category = document.getElementById('loy-reward-category')?.value || 'Serviço';
+
+  if (!title || isNaN(pointsCost) || pointsCost <= 0) {
+    await showLuxAlert({
+      title: 'Informe o Prêmio',
+      message: 'Digite o nome do prêmio e a quantidade de pontos necessários para resgate.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  if (!state.loyalty) state.loyalty = JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
+  state.loyalty.rewards.push({
+    _id: `rew_${Date.now()}`,
+    title,
+    pointsCost,
+    category
+  });
+
+  document.getElementById('loy-reward-title').value = '';
+  document.getElementById('loy-reward-cost').value = '';
+
+  persistLocalData();
+  renderAdminLoyalty();
+
+  await showLuxAlert({
+    title: 'Prêmio Adicionado ao Catálogo!',
+    message: `"${title}" (${pointsCost} pontos) já está disponível para resgate na aba Fidelidade do cliente.`,
+    type: 'success'
+  });
+}
+
+async function deleteLoyaltyRewardAdmin(rewId) {
+  if (!state.loyalty || !Array.isArray(state.loyalty.rewards)) return;
+  state.loyalty.rewards = state.loyalty.rewards.filter(r => r._id !== rewId);
+  persistLocalData();
+  renderAdminLoyalty();
+}
+
+function renderClientLoyaltyAndPackages() {
+  const user = state.currentUser;
+  const ptsEl = document.getElementById('client-loyalty-points-big');
+  const nextTextEl = document.getElementById('client-loyalty-next-reward-text');
+  const barEl = document.getElementById('client-loyalty-progress-bar');
+  const rewardsGrid = document.getElementById('client-loyalty-rewards-grid');
+  const myPkgsList = document.getElementById('client-my-packages-list');
+  const availPkgsList = document.getElementById('client-available-packages-list');
+  const historyList = document.getElementById('client-loyalty-history-list');
+
+  const userPts = getUserLoyaltyPoints(user);
+  if (ptsEl) ptsEl.textContent = userPts;
+
+  const rewards = (state.loyalty?.rewards || []).slice().sort((a, b) => a.pointsCost - b.pointsCost);
+  const nextReward = rewards.find(r => r.pointsCost > userPts) || rewards[rewards.length - 1];
+
+  if (nextReward) {
+    const pct = Math.min(100, Math.round((userPts / nextReward.pointsCost) * 100));
+    if (barEl) barEl.style.width = `${pct}%`;
+    if (nextTextEl) {
+      nextTextEl.textContent = userPts >= nextReward.pointsCost
+        ? `🎉 Você já tem pontos suficientes para resgatar "${nextReward.title}"!`
+        : `Faltam ${nextReward.pointsCost - userPts} pontos para resgatar "${nextReward.title}"`;
+    }
+  }
+
+  // Catálogo de Prêmios para Resgate
+  if (rewardsGrid) {
+    rewardsGrid.innerHTML = rewards.map(rw => {
+      const canRedeem = userPts >= rw.pointsCost;
+      return `
+        <div class="p-3.5 rounded-2xl bg-[#11131a] border ${canRedeem ? 'border-[#e5a769]/50' : 'border-white/[0.06]'} flex items-center justify-between text-xs">
+          <div class="min-w-0 pr-2">
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 font-semibold">${rw.category || 'Prêmio'}</span>
+            <h5 class="font-extrabold text-white text-xs md:text-sm mt-1">${rw.title}</h5>
+            <span class="text-[11px] font-black text-[#e5a769] block mt-0.5"><i class="fa-solid fa-crown mr-1"></i>${rw.pointsCost} pontos</span>
+          </div>
+          <button type="button" onclick="redeemLoyaltyReward('${rw._id}')" class="px-3.5 py-2 rounded-xl text-[10px] font-extrabold shrink-0 transition ${
+            canRedeem
+              ? 'btn-lux-primary shadow-md'
+              : 'bg-zinc-800/80 text-zinc-500 border border-white/[0.05]'
+          }">
+            ${canRedeem ? 'Resgatar Prêmio' : `Faltam ${rw.pointsCost - userPts} pts`}
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Meus Pacotes Ativos (Sessões Utilizadas x Compradas)
+  if (myPkgsList) {
+    const myPkgs = user
+      ? (state.clientPackages || []).filter(
+          cp => cp.userId === user._id || (cp.clientEmail && (cp.clientEmail || '').toLowerCase() === (user.email || '').toLowerCase())
+        )
+      : [];
+
+    if (myPkgs.length === 0) {
+      myPkgsList.innerHTML = `<div class="p-4 rounded-xl bg-[#101218] border border-white/[0.05] text-center text-xs text-zinc-400">Você ainda não possui pacotes ativos. Confira abaixo os pacotes com desconto!</div>`;
+    } else {
+      myPkgsList.innerHTML = myPkgs.map(cp => {
+        const used = Number(cp.usedSessions || 0);
+        const total = Math.max(1, Number(cp.totalSessions || 1));
+        const remaining = Math.max(0, total - used);
+        const pct = Math.min(100, Math.round((used / total) * 100));
+        return `
+          <div class="p-3.5 rounded-2xl bg-[#11131a] border border-emerald-500/35 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-white text-sm">${cp.packageName}</span>
+              <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+                ${remaining} sessão(ões) disponível(is)
+              </span>
+            </div>
+            <p class="text-[11px] text-zinc-400">${cp.itemsDesc || ''}</p>
+            <div class="space-y-1 pt-1">
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="text-zinc-300 font-semibold">Sessões Utilizadas x Compradas: <b class="text-white">${used} de ${total}</b></span>
+                <span class="text-[#e5a769] font-bold">${pct}% concluído</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-[#090a0f] overflow-hidden border border-white/[0.06]">
+                <div class="h-full rounded-full btn-lux-primary transition-all duration-300" style="width:${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // Catálogo de Pacotes para Adquirir no App
+  if (availPkgsList) {
+    availPkgsList.innerHTML = (state.packages || []).map(p => {
+      const economy = Math.max(0, Number(p.originalPrice || p.price) - Number(p.price || 0));
+      return `
+        <div class="p-3.5 rounded-2xl bg-[#11131a] border border-white/[0.07] flex items-center justify-between text-xs">
+          <div class="min-w-0 pr-2">
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-white text-xs md:text-sm">${p.name}</span>
+              <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#e5a769]/20 text-[#e5a769] font-bold">${p.totalSessions} sessões</span>
+            </div>
+            <p class="text-[10px] text-zinc-400 mt-0.5">${p.itemsDesc}</p>
+            <div class="flex items-center space-x-2 mt-1">
+              <span class="text-[10px] text-zinc-500 line-through">R$ ${Number(p.originalPrice || p.price).toFixed(2).replace('.', ',')}</span>
+              <span class="text-xs font-black text-emerald-400">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</span>
+              ${economy > 0 ? `<span class="text-[9px] text-amber-300 font-bold">(-R$ ${economy.toFixed(0)})</span>` : ''}
+            </div>
+          </div>
+          <button type="button" onclick="buyPackageFromClientApp('${p._id}')" class="px-3.5 py-2 rounded-xl btn-lux-primary text-[10px] font-extrabold shrink-0">
+            Adquirir
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Extrato de Pontos & Resgates do Cliente
+  if (historyList) {
+    const myHist = user
+      ? (state.loyalty?.history || []).filter(h => h.userId === user._id || (h.clientName || '').toLowerCase() === (user.name || '').toLowerCase())
+      : (state.loyalty?.history || []);
+
+    if (myHist.length === 0) {
+      historyList.innerHTML = `<div class="p-4 text-center text-xs text-zinc-500">Nenhuma movimentação de pontos ainda.</div>`;
+    } else {
+      historyList.innerHTML = myHist.map(h => {
+        const isEarn = h.type === 'earn';
+        return `
+          <div class="p-2.5 rounded-xl bg-[#101218] border border-white/[0.05] flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-white block">${h.desc}</span>
+              <span class="text-[10px] text-zinc-500">${h.date}</span>
+            </div>
+            <span class="font-black ${isEarn ? 'text-emerald-400' : 'text-amber-400'}">
+              ${isEarn ? `+${h.points} pts` : `-${h.points} pts`}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+async function redeemLoyaltyReward(rewId) {
+  const user = state.currentUser;
+  if (!user) {
+    await showLuxAlert({
+      title: 'Faça Login',
+      message: 'Entre na sua conta para resgatar prêmios do Programa de Fidelidade.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const rw = (state.loyalty?.rewards || []).find(r => r._id === rewId);
+  if (!rw) return;
+
+  const currentPts = getUserLoyaltyPoints(user);
+  if (currentPts < rw.pointsCost) {
+    await showLuxAlert({
+      title: 'Pontos Insuficientes',
+      message: `Você possui ${currentPts} pontos e precisa de ${rw.pointsCost} pontos para resgatar "${rw.title}". Continue agendando para acumular mais pontos!`,
+      type: 'warning'
+    });
+    return;
+  }
+
+  const ok = await showLuxConfirm({
+    title: 'Confirmar Resgate de Prêmio?',
+    message: `Deseja trocar ${rw.pointsCost} pontos por "${rw.title}" agora mesmo?`,
+    confirmText: 'Sim, Resgatar Prêmio'
+  });
+  if (!ok) return;
+
+  setUserLoyaltyPoints(user, currentPts - rw.pointsCost);
+
+  const nowStr = formatNowTimestamp();
+  state.loyalty.history.unshift({
+    _id: `lh_${Date.now()}`,
+    userId: user._id,
+    clientName: user.name,
+    type: 'redeem',
+    points: rw.pointsCost,
+    desc: `Resgate de Prêmio: ${rw.title}`,
+    date: nowStr
+  });
+
+  state.loyalty.redemptions.unshift({
+    _id: `red_${Date.now()}`,
+    userId: user._id,
+    clientName: user.name,
+    rewardId: rw._id,
+    rewardTitle: rw.title,
+    pointsCost: rw.pointsCost,
+    date: nowStr
+  });
+
+  persistLocalData();
+  updateGreeting();
+  renderClientLoyaltyAndPackages();
+
+  await showLuxAlert({
+    title: 'Prêmio Resgatado com Sucesso! 🎉',
+    message: `Seu voucher para "${rw.title}" foi gerado e já aparece no Painel da Barbearia. Basta apresentar no seu próximo atendimento!`,
+    type: 'success'
+  });
+}
+

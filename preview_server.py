@@ -277,6 +277,14 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "reminders": DB["reminders"]})
             return
 
+        if path == '/api/modules/sync':
+            for k in ("packages", "clientPackages", "inventory", "inventoryMovements", "waitlist", "returnRules", "reviews", "satisfactionEnabled", "loyalty"):
+                if k in body:
+                    DB[k] = body[k]
+            save_db(DB)
+            self.send_json({"ok": True})
+            return
+
         if path.startswith('/api/services/'):
             svc_id = path.split('/')[3]
             for s in DB["services"]:
@@ -385,6 +393,18 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "finance": DB.get("finance", {})})
         elif path == '/api/reminders/settings':
             self.send_json({"success": True, "reminders": DB.get("reminders", {})})
+        elif path == '/api/modules/sync':
+            self.send_json({
+                "packages": DB.get("packages", []),
+                "clientPackages": DB.get("clientPackages", []),
+                "inventory": DB.get("inventory", []),
+                "inventoryMovements": DB.get("inventoryMovements", []),
+                "waitlist": DB.get("waitlist", []),
+                "returnRules": DB.get("returnRules", []),
+                "reviews": DB.get("reviews", []),
+                "satisfactionEnabled": DB.get("satisfactionEnabled", True),
+                "loyalty": DB.get("loyalty", None)
+            })
         elif path == '/api/appointments/my':
             email = (query.get('email', [''])[0] or '').lower().strip()
             phone = (query.get('phone', [''])[0] or '').strip()
