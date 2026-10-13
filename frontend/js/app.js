@@ -1,8 +1,11 @@
 // ========================================================
 // GUUH BARBEIRO - SISTEMA COMPLETO (MOBILE & DESKTOP WEB APP)
-// Autenticação Real + Google OAuth, Multi-Serviços Somados,
-// Upload de Foto + URL, Horários até 23h + Personalizados,
-// Controle de Acesso Admin e Alertas Customizados Luxuosos
+// 1. Lembretes de Horários (Push Notification, E-mail e SMS)
+// 2. Flexibilização da Agenda (Jornada por Dia da Semana, Período Estendido e Encaixes)
+// 3. Envio de Notícias e Promoções (Todos ou Grupo + Quem Recebeu/Leu e Quando)
+// 4. Gestão Financeira (Caixa, Contas a Pagar/Receber, Fluxo de Caixa, Taxas de Cartão)
+// 5. Controle Automatizado da Agenda em Tempo Real
+// 6. Relatórios Gerenciais (Dia da Semana, Horário, Plataforma, Mês + Link Promoção 20% OFF)
 // ========================================================
 
 const API_BASE = '/api';
@@ -82,6 +85,14 @@ const DEFAULT_SERVICES = [
   }
 ];
 
+function createDefaultDaySchedules() {
+  const map = {};
+  for (let d = 0; d <= 6; d++) {
+    map[String(d)] = [...ALL_POSSIBLE_HOURS];
+  }
+  return map;
+}
+
 const DEFAULT_BARBERS = [
   {
     _id: 'b1',
@@ -92,7 +103,9 @@ const DEFAULT_BARBERS = [
     workDays: [0, 1, 2, 3, 4, 5, 6],
     blockedDates: [],
     workHours: [...ALL_POSSIBLE_HOURS],
-    customHours: [...ALL_POSSIBLE_HOURS]
+    customHours: [...ALL_POSSIBLE_HOURS],
+    daySchedules: createDefaultDaySchedules(),
+    specialPeriods: []
   }
 ];
 
@@ -126,6 +139,87 @@ const DEFAULT_USERS = [
   }
 ];
 
+const DEFAULT_PROMOTIONS = [
+  {
+    _id: 'promo_welcome_1',
+    title: 'Terça Premium: 20% OFF em Cortes & Combos!',
+    message: 'Aproveite 20% de desconto agendando seu horário na terça-feira pelo nosso aplicativo!',
+    discountPercent: 20,
+    eventDate: '',
+    channels: ['app', 'sms'],
+    targetType: 'all',
+    createdAt: '12/10/2026 10:00',
+    recipients: [
+      {
+        userId: 'u_client1',
+        name: 'Felipe Rocha',
+        email: 'felipe@email.com',
+        phone: '(11) 98765-4321',
+        receivedAt: '12/10/2026 10:01',
+        readAt: '12/10/2026 10:15'
+      }
+    ]
+  }
+];
+
+const DEFAULT_FINANCE = {
+  settings: {
+    creditFeePercent: 3.99,
+    debitFeePercent: 1.99,
+    pixFeePercent: 0.0
+  },
+  transactions: [
+    {
+      _id: 'fin_seed_1',
+      title: 'Corte Degradê + Barba - Felipe Rocha',
+      type: 'income',
+      category: 'Serviços',
+      amount: 70.0,
+      paymentMethod: 'pix',
+      feePercent: 0,
+      feeAmount: 0,
+      netAmount: 70.0,
+      status: 'paid',
+      dueDate: new Date().toISOString().split('T')[0]
+    },
+    {
+      _id: 'fin_seed_2',
+      title: 'Estoque Pomadas Modeladoras & Lâminas',
+      type: 'expense',
+      category: 'Produtos',
+      amount: 120.0,
+      paymentMethod: 'pix',
+      feePercent: 0,
+      feeAmount: 0,
+      netAmount: 120.0,
+      status: 'paid',
+      dueDate: new Date().toISOString().split('T')[0]
+    },
+    {
+      _id: 'fin_seed_3',
+      title: 'Energia Elétrica & Internet da Barbearia',
+      type: 'expense',
+      category: 'Fixo',
+      amount: 210.0,
+      paymentMethod: 'pix',
+      feePercent: 0,
+      feeAmount: 0,
+      netAmount: 210.0,
+      status: 'pending',
+      dueDate: new Date().toISOString().split('T')[0]
+    }
+  ]
+};
+
+const DEFAULT_REMINDER_SETTINGS = {
+  clientPush: true,
+  clientEmail: true,
+  proPush: true,
+  proEmail: true,
+  proSms: true,
+  minutesBefore: 60
+};
+
 const state = {
   shop: {
     name: 'Guuh Barbeiro',
@@ -138,12 +232,17 @@ const state = {
   services: [],
   barbers: [],
   appointments: [],
+  promotions: [],
+  finance: JSON.parse(JSON.stringify(DEFAULT_FINANCE)),
+  reminderSettings: { ...DEFAULT_REMINDER_SETTINGS },
   currentUser: null,
   currentAuthMode: 'login',
   currentTab: 'home',
   currentAdminTab: 'agenda',
   adminAgendaStatusFilter: 'all',
+  financeFilter: 'all',
   clientBookingFilter: 'all',
+  selectedBarberDayTab: {}, // { barberId: 'all' | '0'..'6' }
   selectedServices: [],
   selectedService: null,
   selectedBarber: null,
@@ -268,6 +367,32 @@ function showLuxConfirm({
   });
 }
 
+function formatNowTimestamp() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  return `${d}/${m}/${y} ${hh}:${mm}`;
+}
+
+function triggerBrowserPushNotification(title, body) {
+  try {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/barbearia_logo.jpg' });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(perm => {
+          if (perm === 'granted') {
+            new Notification(title, { body, icon: '/barbearia_logo.jpg' });
+          }
+        });
+      }
+    }
+  } catch (e) {}
+}
+
 // ========================================================
 // INICIALIZAÇÃO & SINCRONIZAÇÃO DE DADOS
 // ========================================================
@@ -298,23 +423,30 @@ async function loadAllData() {
   const lsBarbers = localStorage.getItem('guuh_db_barbers');
   const lsApps = localStorage.getItem('guuh_db_appointments');
   const lsShop = localStorage.getItem('guuh_db_shop');
+  const lsPromos = localStorage.getItem('guuh_db_promotions');
+  const lsFinance = localStorage.getItem('guuh_db_finance');
+  const lsReminders = localStorage.getItem('guuh_db_reminders');
 
   state.users = lsUsers ? JSON.parse(lsUsers) : [...DEFAULT_USERS];
   state.services = lsServices ? JSON.parse(lsServices) : [...DEFAULT_SERVICES];
   state.barbers = lsBarbers ? JSON.parse(lsBarbers) : JSON.parse(JSON.stringify(DEFAULT_BARBERS));
   state.appointments = lsApps ? JSON.parse(lsApps) : [];
+  state.promotions = lsPromos ? JSON.parse(lsPromos) : JSON.parse(JSON.stringify(DEFAULT_PROMOTIONS));
+  state.finance = lsFinance ? JSON.parse(lsFinance) : JSON.parse(JSON.stringify(DEFAULT_FINANCE));
+  state.reminderSettings = lsReminders ? JSON.parse(lsReminders) : { ...DEFAULT_REMINDER_SETTINGS };
+
   if (lsShop) {
     state.shop = { ...state.shop, ...JSON.parse(lsShop) };
   }
 
-  // Garante que os dois acessos Admin padrão (Guuh e Ricardo) existam na lista de usuários
+  // Garante os dois acessos Admin padrão (Guuh e Ricardo)
   DEFAULT_USERS.forEach(defU => {
     if (!state.users.some(u => (u.email || '').toLowerCase() === defU.email.toLowerCase())) {
       state.users.push({ ...defU });
     }
   });
 
-  // Migração para liberar horários até 23:00 por padrão
+  // Garante estrutura completa de horários, jornada por dia da semana e períodos especiais
   const unlocked23h = localStorage.getItem('guuh_hours_23h_v2');
   if (!unlocked23h) {
     state.barbers.forEach(b => {
@@ -322,6 +454,8 @@ async function loadAllData() {
       b.workHours = [...ALL_POSSIBLE_HOURS];
       b.customHours = [...ALL_POSSIBLE_HOURS];
       b.blockedDates = [];
+      b.daySchedules = createDefaultDaySchedules();
+      b.specialPeriods = [];
     });
     localStorage.setItem('guuh_hours_23h_v2', 'true');
   }
@@ -335,16 +469,26 @@ async function loadAllData() {
     if (!Array.isArray(b.customHours) || b.customHours.length === 0) {
       b.customHours = Array.from(new Set([...ALL_POSSIBLE_HOURS, ...b.workHours])).sort();
     }
+    if (!b.daySchedules || typeof b.daySchedules !== 'object') {
+      b.daySchedules = {};
+      for (let d = 0; d <= 6; d++) {
+        b.daySchedules[String(d)] = [...b.workHours];
+      }
+    }
+    if (!Array.isArray(b.specialPeriods)) b.specialPeriods = [];
   });
 
   // Sincroniza com a API do servidor
   try {
-    const [svcRes, barbRes, appRes, setRes, usrRes] = await Promise.all([
+    const [svcRes, barbRes, appRes, setRes, usrRes, promoRes, finRes, remRes] = await Promise.all([
       fetch(`${API_BASE}/services`),
       fetch(`${API_BASE}/barbers`),
       fetch(`${API_BASE}/appointments`),
       fetch(`${API_BASE}/admin/settings`),
-      fetch(`${API_BASE}/users`)
+      fetch(`${API_BASE}/users`),
+      fetch(`${API_BASE}/promotions`),
+      fetch(`${API_BASE}/finance`),
+      fetch(`${API_BASE}/reminders/settings`)
     ]);
 
     if (usrRes && usrRes.ok) {
@@ -357,25 +501,39 @@ async function loadAllData() {
         });
       }
     }
-    if (svcRes.ok && !lsServices) {
+    if (svcRes && svcRes.ok && !lsServices) {
       const data = await svcRes.json();
       if (data.services && data.services.length > 0 && data.services[0].minutes) {
         state.services = data.services;
       }
     }
-    if (barbRes.ok && !lsBarbers) {
+    if (barbRes && barbRes.ok && !lsBarbers) {
       const data = await barbRes.json();
       if (data.barbers && data.barbers.length > 0 && data.barbers[0].workDays) {
         state.barbers = data.barbers;
       }
     }
-    if (appRes.ok && !lsApps) {
+    if (appRes && appRes.ok && !lsApps) {
       const data = await appRes.json();
       if (data.appointments) state.appointments = data.appointments;
     }
-    if (setRes.ok && !lsShop) {
+    if (setRes && setRes.ok && !lsShop) {
       const data = await setRes.json();
       if (data.settings) state.shop = { ...state.shop, ...data.settings };
+    }
+    if (promoRes && promoRes.ok && !lsPromos) {
+      const data = await promoRes.json();
+      if (Array.isArray(data.promotions) && data.promotions.length > 0) {
+        state.promotions = data.promotions;
+      }
+    }
+    if (finRes && finRes.ok && !lsFinance) {
+      const data = await finRes.json();
+      if (data.finance) state.finance = data.finance;
+    }
+    if (remRes && remRes.ok && !lsReminders) {
+      const data = await remRes.json();
+      if (data.reminders) state.reminderSettings = { ...state.reminderSettings, ...data.reminders };
     }
   } catch (e) {}
 
@@ -388,6 +546,9 @@ function persistLocalData() {
   localStorage.setItem('guuh_db_barbers', JSON.stringify(state.barbers));
   localStorage.setItem('guuh_db_appointments', JSON.stringify(state.appointments));
   localStorage.setItem('guuh_db_shop', JSON.stringify(state.shop));
+  localStorage.setItem('guuh_db_promotions', JSON.stringify(state.promotions));
+  localStorage.setItem('guuh_db_finance', JSON.stringify(state.finance));
+  localStorage.setItem('guuh_db_reminders', JSON.stringify(state.reminderSettings));
 }
 
 function checkSessionAndStart() {
@@ -395,13 +556,14 @@ function checkSessionAndStart() {
   if (savedUser) {
     try {
       const parsed = JSON.parse(savedUser);
-      // Atualiza a permissão real do usuário a partir da lista sincronizada
       const freshUser = state.users.find(u => u._id === parsed._id || (u.email || '').toLowerCase() === (parsed.email || '').toLowerCase());
       state.currentUser = freshUser || parsed;
       localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
+      markPromotionsReceivedForCurrentUser();
       updateGreeting();
       renderHomeBarbers();
       renderAboutShopInfo();
+      updateClientNotificationBadge();
       switchTab('home');
       return;
     } catch (e) {}
@@ -413,9 +575,12 @@ function initApp() {
   state.selectedBarber = state.barbers[0] || DEFAULT_BARBERS[0];
   state.selectedServices = state.services.length > 0 ? [state.services[0]] : [];
   state.selectedService = state.selectedServices[0] || null;
+  const finDate = document.getElementById('fin-tx-date');
+  if (finDate) finDate.value = formatDateISO(new Date());
   initCalendarDefaultDate();
   renderHomeBarbers();
   renderAboutShopInfo();
+  updateClientNotificationBadge();
 }
 
 // ========================================================
@@ -542,7 +707,6 @@ async function handleAuthSubmit() {
     return;
   }
 
-  // Modo Login Real
   if (!email || !password) {
     showAuthError('Informe seu e-mail e sua senha para entrar.');
     return;
@@ -642,7 +806,6 @@ async function handleGoogleMockLogin() {
     return;
   }
 
-  // Fallback quando GOOGLE_CLIENT_ID ainda não está definido
   let googleUser = state.users.find(u => u.email === 'cliente@gmail.com');
   if (!googleUser) {
     googleUser = {
@@ -668,9 +831,11 @@ function loginSuccess(user) {
   localStorage.setItem('guuh_client_phone', user.phone || '');
   showAuthError('');
 
+  markPromotionsReceivedForCurrentUser();
   updateGreeting();
   renderHomeBarbers();
   renderAboutShopInfo();
+  updateClientNotificationBadge();
 
   if (user.role === 'admin') {
     switchTab('admin');
@@ -697,7 +862,7 @@ async function handleLogout() {
 }
 
 // ========================================================
-// 2. TELA HOME DO CLIENTE & PERFIL (ACESSO ADMIN RESTRITO)
+// 2. TELA HOME DO CLIENTE, CENTRAL DE LEMBRETES & PROMOÇÕES
 // ========================================================
 function updateGreeting() {
   const nameEl = document.getElementById('home-client-name');
@@ -737,6 +902,225 @@ function updateGreeting() {
       profileAdminBtn.classList.remove('flex');
     }
   }
+
+  renderHomeActivePromoBanner();
+  updateClientNotificationBadge();
+}
+
+function markPromotionsReceivedForCurrentUser() {
+  if (!state.currentUser) return;
+  const nowStr = formatNowTimestamp();
+  let changed = false;
+
+  state.promotions.forEach(p => {
+    if (!Array.isArray(p.recipients)) p.recipients = [];
+    let rec = p.recipients.find(
+      r => r.userId === state.currentUser._id || (r.email && (r.email || '').toLowerCase() === (state.currentUser.email || '').toLowerCase())
+    );
+    if (!rec && p.targetType === 'all') {
+      rec = {
+        userId: state.currentUser._id,
+        name: state.currentUser.name,
+        email: state.currentUser.email,
+        phone: state.currentUser.phone || '',
+        receivedAt: nowStr,
+        readAt: null
+      };
+      p.recipients.push(rec);
+      changed = true;
+    } else if (rec && !rec.receivedAt) {
+      rec.receivedAt = nowStr;
+      changed = true;
+    }
+  });
+
+  if (changed) persistLocalData();
+}
+
+function getClientRemindersAndPromos() {
+  const user = state.currentUser;
+  if (!user) return { upcomingApps: [], promos: [], unreadCount: 0 };
+
+  const upcomingApps = state.appointments.filter(a => {
+    if (a.status !== 'confirmed') return false;
+    if (user._id && a.userId === user._id) return true;
+    if (user.email && (a.clientEmail || '').toLowerCase() === user.email.toLowerCase()) return true;
+    return false;
+  });
+
+  const userPromos = state.promotions.filter(p => {
+    if (p.targetType === 'all') return true;
+    return (p.recipients || []).some(
+      r => r.userId === user._id || (r.email && (r.email || '').toLowerCase() === (user.email || '').toLowerCase())
+    );
+  });
+
+  let unreadPromos = 0;
+  userPromos.forEach(p => {
+    const rec = (p.recipients || []).find(
+      r => r.userId === user._id || (r.email && (r.email || '').toLowerCase() === (user.email || '').toLowerCase())
+    );
+    if (!rec || !rec.readAt) unreadPromos++;
+  });
+
+  return {
+    upcomingApps,
+    promos: userPromos,
+    unreadCount: upcomingApps.length + unreadPromos
+  };
+}
+
+function updateClientNotificationBadge() {
+  const badge = document.getElementById('client-notif-badge');
+  if (!badge) return;
+  const { unreadCount } = getClientRemindersAndPromos();
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function renderHomeActivePromoBanner() {
+  const box = document.getElementById('home-active-promo-alert');
+  if (!box) return;
+  const { promos } = getClientRemindersAndPromos();
+  if (!promos || promos.length === 0) {
+    box.classList.add('hidden');
+    return;
+  }
+  const latest = promos[0];
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <div onclick="openClientNotificationsModal()" class="p-3 rounded-2xl bg-[#e5a769]/12 border border-[#e5a769]/35 flex items-center justify-between cursor-pointer hover:bg-[#e5a769]/20 transition">
+      <div class="flex items-center space-x-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-[#e5a769] text-[#0d0e12] flex items-center justify-center text-xs font-black shrink-0">
+          ${latest.discountPercent ? `${latest.discountPercent}%` : '<i class="fa-solid fa-bullhorn"></i>'}
+        </div>
+        <div class="min-w-0">
+          <span class="text-[11px] font-extrabold text-white block truncate">${latest.title}</span>
+          <span class="text-[10px] text-zinc-300 block truncate">${latest.message}</span>
+        </div>
+      </div>
+      <span class="text-[10px] font-bold text-[#e5a769] shrink-0 ml-2">Ver <i class="fa-solid fa-chevron-right text-[8px]"></i></span>
+    </div>
+  `;
+}
+
+async function openClientNotificationsModal() {
+  const modal = document.getElementById('modal-client-notifications');
+  const listEl = document.getElementById('client-notifications-list');
+  if (!modal || !listEl) return;
+
+  const user = state.currentUser;
+  const nowStr = formatNowTimestamp();
+
+  // Marca todas as promoções como Recebidas e Lidas por este cliente (com data e hora!)
+  if (user) {
+    for (const p of state.promotions) {
+      if (!Array.isArray(p.recipients)) p.recipients = [];
+      let rec = p.recipients.find(
+        r => r.userId === user._id || (r.email && (r.email || '').toLowerCase() === (user.email || '').toLowerCase())
+      );
+      if (!rec && p.targetType === 'all') {
+        rec = {
+          userId: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          receivedAt: nowStr,
+          readAt: nowStr
+        };
+        p.recipients.push(rec);
+      } else if (rec) {
+        if (!rec.receivedAt) rec.receivedAt = nowStr;
+        if (!rec.readAt) rec.readAt = nowStr;
+      }
+
+      try {
+        await fetch(`${API_BASE}/promotions/${p._id}/receipt`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user._id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            action: 'read'
+          })
+        });
+      } catch (e) {}
+    }
+    persistLocalData();
+  }
+
+  const { upcomingApps, promos } = getClientRemindersAndPromos();
+  let html = '';
+
+  // 1. Lembretes de Horários Agendados
+  if (upcomingApps.length > 0) {
+    html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-[#e5a769] pt-1">🔔 Seus Lembretes de Horário</div>`;
+    upcomingApps.forEach(a => {
+      const [y, m, d] = (a.date || '').split('-');
+      const mins = state.reminderSettings.minutesBefore || 60;
+      const anteText = mins >= 1440 ? '24h antes' : mins >= 60 ? `${mins / 60}h antes` : `${mins} min antes`;
+      html += `
+        <div class="p-3.5 rounded-2xl bg-[#141720] border border-emerald-500/30 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">Push + E-mail Ativos (${anteText})</span>
+            <span class="text-[10px] text-zinc-400 font-semibold">${d}/${m}/${y} às ${a.time}</span>
+          </div>
+          <p class="font-extrabold text-white text-xs">${a.serviceName}</p>
+          <p class="text-[11px] text-zinc-400">Profissional: <b class="text-zinc-200">${a.barberName}</b> • Valor: <b class="text-[#e5a769]">R$ ${Number(a.price).toFixed(2).replace('.', ',')}</b></p>
+        </div>
+      `;
+    });
+  }
+
+  // 2. Promoções, Eventos e Notícias da Barbearia
+  if (promos.length > 0) {
+    html += `<div class="text-[10px] font-extrabold uppercase tracking-wider text-[#e5a769] pt-2">📢 Eventos, Notícias & Promoções</div>`;
+    promos.forEach(p => {
+      const rec = user
+        ? (p.recipients || []).find(r => r.userId === user._id || (r.email && (r.email || '').toLowerCase() === (user.email || '').toLowerCase()))
+        : null;
+      html += `
+        <div class="p-3.5 rounded-2xl bg-[#141720] border border-[#e5a769]/35 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-white text-xs">${p.title}</span>
+            ${p.discountPercent ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-[#e5a769] text-[#0d0e12]">${p.discountPercent}% OFF</span>` : ''}
+          </div>
+          <p class="text-[11px] text-zinc-300 leading-relaxed">${p.message}</p>
+          <div class="flex items-center justify-between pt-1.5 border-t border-white/[0.06] text-[9px] text-zinc-400">
+            <span><i class="fa-solid fa-check-double text-emerald-400 mr-1"></i>Lido em: ${rec?.readAt || nowStr}</span>
+            <button onclick="closeClientNotificationsModal(); openQuickBooking();" class="text-[#e5a769] font-extrabold hover:underline">
+              Agendar Agora →
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  if (!html) {
+    html = `
+      <div class="p-6 text-center text-zinc-400 space-y-2">
+        <i class="fa-regular fa-bell-slash text-xl text-zinc-500"></i>
+        <p class="font-bold text-white text-xs">Nenhuma notificação no momento</p>
+        <p class="text-[11px] text-zinc-500">Quando você agendar um horário ou a barbearia lançar uma promoção, você receberá aqui.</p>
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = html;
+  modal.classList.remove('hidden');
+  updateClientNotificationBadge();
+}
+
+function closeClientNotificationsModal() {
+  const modal = document.getElementById('modal-client-notifications');
+  if (modal) modal.classList.add('hidden');
 }
 
 function renderHomeBarbers() {
@@ -747,6 +1131,7 @@ function renderHomeBarbers() {
 
   container.innerHTML = state.barbers.map(b => {
     const workDaysText = (b.workDays || [0, 1, 2, 3, 4, 5, 6]).map(d => dayNames[d]).join(', ');
+    const specialCount = Array.isArray(b.specialPeriods) ? b.specialPeriods.length : 0;
     return `
       <div onclick="selectBarberFromHome('${b._id}')" class="lux-card-elevated p-3.5 md:p-4 flex items-center justify-between cursor-pointer hover:border-[#e5a769]/40 transition group">
         <div class="flex items-center space-x-3.5">
@@ -754,9 +1139,12 @@ function renderHomeBarbers() {
           <div>
             <h5 class="text-sm font-bold text-white group-hover:text-[#e5a769] transition">${b.name}</h5>
             <span class="text-[11px] text-zinc-400 block">${b.role || 'Barbeiro'} • ${b.exp || 'Especialista'}</span>
-            <span class="inline-block mt-1 text-[9px] px-2 py-0.5 rounded-full bg-[#e5a769]/10 text-[#e5a769] border border-[#e5a769]/20 font-semibold">
-              Dias: ${workDaysText}
-            </span>
+            <div class="flex flex-wrap items-center gap-1 mt-1">
+              <span class="inline-block text-[9px] px-2 py-0.5 rounded-full bg-[#e5a769]/10 text-[#e5a769] border border-[#e5a769]/20 font-semibold">
+                Dias: ${workDaysText}
+              </span>
+              ${specialCount > 0 ? `<span class="inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">Horário Estendido Ativo</span>` : ''}
+            </div>
           </div>
         </div>
         <div class="w-8 h-8 rounded-xl bg-[#16171e] border border-white/[0.08] flex items-center justify-center text-[#e5a769] group-hover:bg-[#e5a769] group-hover:text-zinc-950 transition">
@@ -843,7 +1231,7 @@ async function saveUserProfile() {
 }
 
 // ========================================================
-// 3. TELA DE AGENDAMENTO (MULTI-SERVIÇOS + CALENDARIOZINHO)
+// 3. TELA DE AGENDAMENTO AUTOMATIZADO (MULTI-SERVIÇOS + JORNADA FLEXÍVEL)
 // ========================================================
 function openQuickBookingWithSearch(query) {
   const q = (query || '').toLowerCase().trim();
@@ -944,6 +1332,7 @@ function updateBookingUI() {
   const badgeEl = document.getElementById('detail-selected-count-badge');
   const priceBar = document.getElementById('booking-bar-price');
   const countBar = document.getElementById('booking-bar-count');
+  const remInfo = document.getElementById('booking-reminder-info-text');
 
   const count = state.selectedServices.length;
   const totalPrice = state.selectedServices.reduce((acc, s) => acc + Number(s.price || 0), 0);
@@ -980,6 +1369,11 @@ function updateBookingUI() {
   }
   if (priceBar) {
     priceBar.textContent = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+  }
+  if (remInfo) {
+    const mins = state.reminderSettings.minutesBefore || 60;
+    const label = mins >= 1440 ? '24h antes' : mins >= 60 ? `${mins / 60}h antes` : `${mins} min antes`;
+    remInfo.textContent = `Notificação Push no App + E-mail (${label})`;
   }
 
   renderBookingServicesCarousel();
@@ -1090,23 +1484,65 @@ function selectBarberInBooking(barberId) {
 }
 
 // ========================================================
-// CALENDARIOZINHO VINCULADO À DISPONIBILIDADE DO BARBEIRO
+// CONTROLE AUTOMATIZADO DA AGENDA (DIA DA SEMANA + PERÍODO ESPECIAL)
 // ========================================================
+function getSpecialPeriodForDate(barber, dateStr) {
+  if (!barber || !Array.isArray(barber.specialPeriods)) return null;
+  return barber.specialPeriods.find(sp => {
+    if (!sp.startDate || !sp.endDate) return false;
+    return dateStr >= sp.startDate && dateStr <= sp.endDate;
+  }) || null;
+}
+
+function getBarberScheduleForDate(barber, dateObj) {
+  if (!barber || !dateObj) return { hours: [...ALL_POSSIBLE_HOURS], source: 'Padrão' };
+  const dateStr = formatDateISO(dateObj);
+
+  // 1. Verifica se há uma Jornada Estendida por Período Específico configurada
+  const special = getSpecialPeriodForDate(barber, dateStr);
+  if (special && Array.isArray(special.hours) && special.hours.length > 0) {
+    return {
+      hours: [...special.hours].sort(),
+      source: `Período Especial: ${special.label || 'Jornada Estendida'}`
+    };
+  }
+
+  // 2. Verifica a Jornada por Dia da Semana (Dom=0 .. Sáb=6)
+  const dayOfWeek = String(dateObj.getDay());
+  if (barber.daySchedules && Array.isArray(barber.daySchedules[dayOfWeek])) {
+    return {
+      hours: [...barber.daySchedules[dayOfWeek]].sort(),
+      source: 'Jornada do Dia da Semana'
+    };
+  }
+
+  // 3. Fallback para workHours geral
+  return {
+    hours: Array.isArray(barber.workHours) ? [...barber.workHours].sort() : [...ALL_POSSIBLE_HOURS],
+    source: 'Jornada Padrão'
+  };
+}
+
 function isDateAvailableForBarber(dateObj, barber) {
   if (!barber) return true;
   const now = new Date();
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   if (dateObj.getTime() < todayMidnight) return false;
 
-  const dayOfWeek = dateObj.getDay();
-  const workDays = Array.isArray(barber.workDays) ? barber.workDays : [0, 1, 2, 3, 4, 5, 6];
-  if (!workDays.includes(dayOfWeek)) return false;
-
   const dateStr = formatDateISO(dateObj);
   const blocked = Array.isArray(barber.blockedDates) ? barber.blockedDates : [];
   if (blocked.includes(dateStr)) return false;
 
-  return true;
+  // Se estiver dentro de um Período Especial Estendido, fica disponível mesmo em dia de folga normal
+  const special = getSpecialPeriodForDate(barber, dateStr);
+  if (special) return true;
+
+  const dayOfWeek = dateObj.getDay();
+  const workDays = Array.isArray(barber.workDays) ? barber.workDays : [0, 1, 2, 3, 4, 5, 6];
+  if (!workDays.includes(dayOfWeek)) return false;
+
+  const { hours } = getBarberScheduleForDate(barber, dateObj);
+  return hours.length > 0;
 }
 
 function initCalendarDefaultDate() {
@@ -1233,6 +1669,7 @@ function renderMiniCalendar() {
     const dateStr = formatDateISO(dateObj);
     const isAvailable = isDateAvailableForBarber(dateObj, barber);
     const isSelected = state.selectedDate === dateStr;
+    const isSpecial = Boolean(getSpecialPeriodForDate(barber, dateStr));
 
     if (!isAvailable) {
       html += `
@@ -1248,7 +1685,9 @@ function renderMiniCalendar() {
       `;
     } else {
       html += `
-        <button type="button" onclick="selectCalendarDate('${dateStr}')" class="h-8 rounded-xl text-[11px] font-semibold bg-[#16171e] text-zinc-200 border border-white/[0.06] hover:border-[#e5a769]/60 flex items-center justify-center transition">
+        <button type="button" onclick="selectCalendarDate('${dateStr}')" class="h-8 rounded-xl text-[11px] font-semibold ${
+          isSpecial ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : 'bg-[#16171e] text-zinc-200 border border-white/[0.06]'
+        } hover:border-[#e5a769]/60 flex items-center justify-center transition">
           ${day}
         </button>
       `;
@@ -1272,17 +1711,18 @@ function selectCalendarDate(dateStr) {
 
 function renderBookingSlots() {
   const grid = document.getElementById('booking-slots-grid');
+  const tagEl = document.getElementById('booking-day-schedule-tag');
   if (!grid) return;
 
   const barber = state.selectedBarber || state.barbers[0];
-  const baseSlots = (barber && Array.isArray(barber.workHours) && barber.workHours.length > 0)
-    ? [...barber.workHours].sort()
-    : [...ALL_POSSIBLE_HOURS];
-
   const [y, m, d] = (state.selectedDate || '').split('-').map(Number);
   const selDateObj = new Date(y, m - 1, d);
+
+  const { hours: baseSlots, source } = getBarberScheduleForDate(barber, selDateObj);
+  if (tagEl) tagEl.textContent = source;
+
   if (!isDateAvailableForBarber(selDateObj, barber)) {
-    grid.innerHTML = `<div class="col-span-4 text-center py-4 text-[11px] text-amber-400">O profissional não atende nesta data. Escolha outro dia no calendário.</div>`;
+    grid.innerHTML = `<div class="col-span-4 text-center py-4 text-[11px] text-amber-400">Fora da jornada de trabalho do profissional nesta data. Escolha outro dia.</div>`;
     state.selectedTime = null;
     return;
   }
@@ -1294,7 +1734,7 @@ function renderBookingSlots() {
   const availableSlots = baseSlots.filter(t => !bookedTimes.includes(t));
 
   if (availableSlots.length === 0) {
-    grid.innerHTML = `<div class="col-span-4 text-center py-4 text-[11px] text-zinc-500">Todos os horários deste dia estão ocupados. Escolha outra data.</div>`;
+    grid.innerHTML = `<div class="col-span-4 text-center py-4 text-[11px] text-zinc-500">Todos os horários deste dia já foram preenchidos. Escolha outra data.</div>`;
     state.selectedTime = null;
     return;
   }
@@ -1357,6 +1797,7 @@ async function finishBookingReservation() {
   const user = state.currentUser || { _id: 'guest', name: 'Cliente', email: '', phone: '' };
   const combinedNames = state.selectedServices.map(s => s.name).join(' + ');
   const totalPrice = state.selectedServices.reduce((acc, s) => acc + Number(s.price || 0), 0);
+  const isMobile = window.innerWidth < 768;
 
   const newAppointment = {
     _id: `app_${Date.now()}`,
@@ -1371,7 +1812,12 @@ async function finishBookingReservation() {
     price: totalPrice,
     date: state.selectedDate,
     time: state.selectedTime,
-    status: 'confirmed'
+    status: 'confirmed',
+    isFitIn: false,
+    platform: isMobile ? 'App Mobile' : 'Web Desktop',
+    paymentMethod: 'pix',
+    reminderChannels: ['Push', 'E-mail'],
+    reminderSentAt: formatNowTimestamp()
   };
 
   state.appointments.push(newAppointment);
@@ -1385,6 +1831,16 @@ async function finishBookingReservation() {
     });
   } catch (e) {}
 
+  // Dispara Push Notification real no navegador/dispositivo do cliente
+  const [y, m, d] = newAppointment.date.split('-');
+  if (state.reminderSettings.clientPush) {
+    triggerBrowserPushNotification(
+      'Lembrete de Horário • Guuh Barbeiro',
+      `Olá ${newAppointment.clientName}! Seu horário (${newAppointment.serviceName}) está confirmado para ${d}/${m}/${y} às ${newAppointment.time}.`
+    );
+  }
+
+  updateClientNotificationBadge();
   showSuccessModal(newAppointment);
 }
 
@@ -1399,6 +1855,7 @@ function showSuccessModal(payload) {
       <p><span class="text-zinc-500">Serviços:</span> <b class="text-[#e5a769]">${payload.serviceName}</b></p>
       <p><span class="text-zinc-500">Barbeiro:</span> <b class="text-white">${payload.barberName}</b></p>
       <p><span class="text-zinc-500">Data/Hora:</span> <b class="text-white">${d}/${m}/${y} às ${payload.time}</b></p>
+      <p><span class="text-zinc-500">Lembrete Automático:</span> <b class="text-sky-400">Push no App + E-mail</b></p>
       <p><span class="text-zinc-500">Total Somado:</span> <b class="text-emerald-400">R$ ${Number(payload.price).toFixed(2).replace('.', ',')}</b></p>
     `;
   }
@@ -1413,7 +1870,7 @@ function closeSuccessAndGoHome() {
 }
 
 // ========================================================
-// 4. MINHA AGENDA DO CLIENTE (COM MINI-DASHBOARD)
+// 4. MINHA AGENDA DO CLIENTE (COM STATUS DE LEMBRETE)
 // ========================================================
 function setClientBookingFilter(filter) {
   state.clientBookingFilter = filter;
@@ -1511,13 +1968,16 @@ function loadMyBookings() {
           <span class="font-bold text-[#e5a769] truncate pr-2"><i class="fa-solid fa-scissors text-[9px] mr-1"></i>${item.serviceName}</span>
           <span class="font-black text-white shrink-0">R$ ${Number(item.price || 0).toFixed(2).replace('.', ',')}</span>
         </div>
-        ${!isCancelled && !isCompleted ? `
-          <div class="flex justify-end pt-0.5">
-            <button onclick="cancelClientBooking('${item._id}')" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-[10px] font-bold transition">
-              <i class="fa-solid fa-xmark mr-1"></i>Desmarcar Horário
+        <div class="flex items-center justify-between pt-0.5">
+          <span class="text-[10px] text-sky-400 font-medium">
+            <i class="fa-solid fa-bell mr-1"></i>Lembrete: Push + E-mail ativo
+          </span>
+          ${!isCancelled && !isCompleted ? `
+            <button onclick="cancelClientBooking('${item._id}')" class="px-3 py-1 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 text-[10px] font-bold transition">
+              <i class="fa-solid fa-xmark mr-1"></i>Desmarcar
             </button>
-          </div>
-        ` : ''}
+          ` : ''}
+        </div>
       </div>
     `;
   }).join('');
@@ -1547,19 +2007,22 @@ async function cancelClientBooking(appId) {
   } catch (e) {}
 
   loadMyBookings();
+  updateClientNotificationBadge();
   await showLuxAlert({
     title: 'Horário Desmarcado',
-    message: 'Seu agendamento foi cancelado e a vaga foi liberada na agenda.',
+    message: 'Seu agendamento foi cancelado e a vaga foi liberada automaticamente na agenda.',
     type: 'info'
   });
 }
 
 // ========================================================
-// 5. PAINEL DO ADMINISTRADOR (100% VINCULADO AO CLIENTE)
+// 5. PAINEL DO ADMINISTRADOR (8 ABAS COMPLETAS)
 // ========================================================
+const ADMIN_SUB_TABS = ['agenda', 'services', 'barbers', 'finance', 'promotions', 'reports', 'users', 'settings'];
+
 function switchAdminSubTab(sub) {
   state.currentAdminTab = sub;
-  ['agenda', 'services', 'barbers', 'users', 'settings'].forEach(t => {
+  ADMIN_SUB_TABS.forEach(t => {
     const panel = document.getElementById(`admin-sub-${t}`);
     const btn = document.getElementById(`admin-tab-btn-${t}`);
     if (panel) {
@@ -1568,9 +2031,9 @@ function switchAdminSubTab(sub) {
     }
     if (btn) {
       if (t === sub) {
-        btn.className = 'py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold bg-[#e5a769] text-[#0d0e12] shadow-md transition flex flex-col md:flex-row items-center justify-center md:space-x-2 space-y-0.5 md:space-y-0';
+        btn.className = 'py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold bg-[#e5a769] text-[#0d0e12] shadow-md transition flex flex-col items-center justify-center space-y-0.5';
       } else {
-        btn.className = 'py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col md:flex-row items-center justify-center md:space-x-2 space-y-0.5 md:space-y-0';
+        btn.className = 'py-2 md:py-2.5 px-1 rounded-xl text-[10px] md:text-xs font-bold text-zinc-400 hover:text-white transition flex flex-col items-center justify-center space-y-0.5';
       }
     }
   });
@@ -1579,9 +2042,13 @@ function switchAdminSubTab(sub) {
 }
 
 function renderAdminDashboard() {
+  renderAdminReminderSettingsForm();
   renderAdminAgenda();
   renderAdminServicesList();
   renderAdminBarbersList();
+  renderAdminFinance();
+  renderAdminPromotions();
+  renderAdminReports();
   renderAdminUsersList();
   renderAdminShopSettingsForm();
 }
@@ -1607,7 +2074,166 @@ function clearAdminDateFilter() {
   setAdminAgendaStatusFilter('all');
 }
 
-// --- 5.1 ADMIN: DASHBOARD EXECUTIVO & AGENDA ---
+// --- 5.1 ADMIN: LEMBRETES DE HORÁRIOS, ENCAIXES & AGENDA ---
+function renderAdminReminderSettingsForm() {
+  const r = state.reminderSettings || DEFAULT_REMINDER_SETTINGS;
+  const cPush = document.getElementById('rem-client-push');
+  const cEmail = document.getElementById('rem-client-email');
+  const pPush = document.getElementById('rem-pro-push');
+  const pEmail = document.getElementById('rem-pro-email');
+  const pSms = document.getElementById('rem-pro-sms');
+  const mins = document.getElementById('rem-minutes-before');
+
+  if (cPush) cPush.checked = Boolean(r.clientPush);
+  if (cEmail) cEmail.checked = Boolean(r.clientEmail);
+  if (pPush) pPush.checked = Boolean(r.proPush);
+  if (pEmail) pEmail.checked = Boolean(r.proEmail);
+  if (pSms) pSms.checked = Boolean(r.proSms);
+  if (mins) mins.value = String(r.minutesBefore || 60);
+}
+
+async function saveReminderSettings() {
+  state.reminderSettings = {
+    clientPush: Boolean(document.getElementById('rem-client-push')?.checked),
+    clientEmail: Boolean(document.getElementById('rem-client-email')?.checked),
+    proPush: Boolean(document.getElementById('rem-pro-push')?.checked),
+    proEmail: Boolean(document.getElementById('rem-pro-email')?.checked),
+    proSms: Boolean(document.getElementById('rem-pro-sms')?.checked),
+    minutesBefore: parseInt(document.getElementById('rem-minutes-before')?.value || '60', 10)
+  };
+
+  persistLocalData();
+  try {
+    await fetch(`${API_BASE}/reminders/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state.reminderSettings)
+    });
+  } catch (e) {}
+
+  await showLuxAlert({
+    title: 'Lembretes Configurados!',
+    message: 'As regras de envio automático (Push Notification, E-mail e SMS) para clientes e profissionais foram atualizadas.',
+    type: 'success'
+  });
+}
+
+async function sendManualAppointmentReminder(appId) {
+  const item = state.appointments.find(a => a._id === appId);
+  if (!item) return;
+
+  const nowStr = formatNowTimestamp();
+  item.reminderSentAt = nowStr;
+  persistLocalData();
+
+  try {
+    await fetch(`${API_BASE}/appointments/${appId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: item.status, reminderSentAt: nowStr })
+    });
+  } catch (e) {}
+
+  const [y, m, d] = (item.date || '').split('-');
+  triggerBrowserPushNotification(
+    `Lembrete de Horário • ${state.shop.name}`,
+    `${item.clientName}, lembramos do seu horário (${item.serviceName}) em ${d}/${m}/${y} às ${item.time}!`
+  );
+
+  renderAdminAgenda();
+  await showLuxAlert({
+    title: 'Lembrete Disparado!',
+    message: `Enviamos lembrete via Push Notification, E-mail e SMS para ${item.clientName} (${d}/${m}/${y} às ${item.time}).`,
+    type: 'success'
+  });
+}
+
+// Modal de Encaixe Manual (Atendimento fora do horário)
+function openFitInModal() {
+  const modal = document.getElementById('modal-admin-fitin');
+  const barberSel = document.getElementById('fitin-barber-id');
+  const svcSel = document.getElementById('fitin-service-id');
+  const dateInp = document.getElementById('fitin-date');
+
+  if (barberSel) {
+    barberSel.innerHTML = state.barbers.map(b => `<option value="${b._id}">${b.name}</option>`).join('');
+  }
+  if (svcSel) {
+    svcSel.innerHTML = state.services.map(s => `<option value="${s._id}">${s.name} - R$ ${Number(s.price).toFixed(2)}</option>`).join('');
+  }
+  if (dateInp && !dateInp.value) {
+    dateInp.value = formatDateISO(new Date());
+  }
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeFitInModal() {
+  const modal = document.getElementById('modal-admin-fitin');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function saveAdminFitInAppointment() {
+  const clientName = document.getElementById('fitin-client-name')?.value.trim() || '';
+  const clientPhone = document.getElementById('fitin-client-phone')?.value.trim() || '(11) 99999-9999';
+  const barberId = document.getElementById('fitin-barber-id')?.value || state.barbers[0]?._id;
+  const serviceId = document.getElementById('fitin-service-id')?.value || state.services[0]?._id;
+  const date = document.getElementById('fitin-date')?.value || formatDateISO(new Date());
+  const time = document.getElementById('fitin-time')?.value || '21:30';
+
+  if (!clientName) {
+    await showLuxAlert({
+      title: 'Informe o Cliente',
+      message: 'Digite o nome do cliente para registrar o encaixe.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const barber = state.barbers.find(b => b._id === barberId) || state.barbers[0];
+  const service = state.services.find(s => s._id === serviceId) || state.services[0];
+
+  const newFitIn = {
+    _id: `app_fit_${Date.now()}`,
+    userId: '',
+    clientName,
+    clientEmail: '',
+    clientPhone,
+    barberId: barber._id,
+    barberName: barber.name,
+    serviceId: service._id,
+    serviceName: service.name,
+    price: Number(service.price || 40),
+    date,
+    time,
+    status: 'confirmed',
+    isFitIn: true,
+    platform: 'Encaixe Presencial',
+    paymentMethod: 'pix',
+    reminderSentAt: formatNowTimestamp()
+  };
+
+  state.appointments.push(newFitIn);
+  persistLocalData();
+
+  try {
+    await fetch(`${API_BASE}/appointments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newFitIn)
+    });
+  } catch (e) {}
+
+  document.getElementById('fitin-client-name').value = '';
+  closeFitInModal();
+  renderAdminAgenda();
+
+  await showLuxAlert({
+    title: 'Encaixe Confirmado!',
+    message: `Encaixe de ${clientName} (${service.name}) agendado para ${time} com ${barber.name}.`,
+    type: 'success'
+  });
+}
+
 function renderAdminAgenda() {
   const totalEl = document.getElementById('admin-stat-total');
   const todaySubEl = document.getElementById('admin-stat-today-sub');
@@ -1668,7 +2294,7 @@ function renderAdminAgenda() {
           <i class="fa-regular fa-calendar-check"></i>
         </div>
         <p class="font-bold text-white text-sm">Nenhum agendamento para este filtro</p>
-        <p class="text-[11px] text-zinc-500">Assim que os clientes agendarem pelo aplicativo, os horários aparecerão aqui.</p>
+        <p class="text-[11px] text-zinc-500">Os clientes podem agendar no aplicativo ou você pode clicar em "+ Criar Encaixe".</p>
       </div>
     `;
     return;
@@ -1692,8 +2318,11 @@ function renderAdminAgenda() {
           <div class="flex items-center space-x-2.5 min-w-0">
             <img src="/user_avatar.svg" class="w-10 h-10 rounded-full object-cover border border-white/15 shrink-0" />
             <div class="min-w-0">
-              <span class="font-extrabold text-white text-xs md:text-sm block truncate">${a.clientName}</span>
-              <span class="text-[10px] text-zinc-400 block truncate">${a.clientPhone || a.clientEmail || 'Cliente Cadastrado'}</span>
+              <div class="flex items-center space-x-1.5">
+                <span class="font-extrabold text-white text-xs md:text-sm truncate">${a.clientName}</span>
+                ${a.isFitIn ? `<span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35 font-bold">Encaixe</span>` : ''}
+              </div>
+              <span class="text-[10px] text-zinc-400 block truncate">${a.clientPhone || a.clientEmail || 'Cliente'} • ${a.platform || 'App Mobile'}</span>
             </div>
           </div>
           <span class="text-[9px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${statusColors[a.status] || statusColors.confirmed}">
@@ -1710,81 +2339,72 @@ function renderAdminAgenda() {
             <span><i class="fa-regular fa-calendar text-[#e5a769] mr-1"></i><b class="text-zinc-200">${d}/${m}/${y}</b> às <b class="text-white">${a.time}</b></span>
             <span>Barbeiro: <b class="text-zinc-200">${a.barberName}</b></span>
           </div>
+          ${a.reminderSentAt ? `
+            <div class="text-[9px] text-sky-400 pt-1 border-t border-white/[0.04]">
+              <i class="fa-solid fa-bell mr-1"></i>Lembrete enviado (Push/E-mail/SMS): ${a.reminderSentAt}
+            </div>
+          ` : ''}
         </div>
 
-        <div class="flex items-center justify-end space-x-2">
-          ${a.status !== 'completed' ? `
-            <button onclick="adminUpdateAppStatus('${a._id}', 'completed')" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold transition">
-              <i class="fa-solid fa-check mr-1"></i>Concluir
-            </button>
-          ` : ''}
-          ${a.status !== 'cancelled' ? `
-            <button onclick="adminUpdateAppStatus('${a._id}', 'cancelled')" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-[10px] font-bold transition">
-              Cancelar
-            </button>
-          ` : ''}
-          <button onclick="adminDeleteAppointment('${a._id}')" class="w-8 h-8 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-[10px] flex items-center justify-center transition">
-            <i class="fa-regular fa-trash-can"></i>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <button onclick="sendManualAppointmentReminder('${a._id}')" class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[10px] font-bold transition">
+            <i class="fa-solid fa-bell mr-1"></i>Lembrar Cliente
           </button>
+
+          <div class="flex items-center space-x-1.5">
+            ${a.status !== 'completed' ? `
+              <button onclick="adminUpdateAppStatus('${a._id}', 'completed')" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold transition">
+                <i class="fa-solid fa-check mr-1"></i>Concluir + Caixa
+              </button>
+            ` : ''}
+            ${a.status !== 'cancelled' ? `
+              <button onclick="adminUpdateAppStatus('${a._id}', 'cancelled')" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-[10px] font-bold transition">
+                Cancelar
+              </button>
+            ` : ''}
+            <button onclick="adminDeleteAppointment('${a._id}')" class="w-8 h-8 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-[10px] flex items-center justify-center transition">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;
   }).join('');
 }
 
-function renderAdminMiniDashboardCharts(activeApps, todayApps, completedApps, cancelledApps) {
+function renderAdminMiniDashboardCharts(activeApps) {
   const barsBox = document.getElementById('admin-dashboard-services-bars');
-  const summaryBox = document.getElementById('admin-dashboard-status-summary');
+  if (!barsBox) return;
 
-  if (barsBox) {
-    const counts = {};
-    state.services.forEach(s => { counts[s.shortName || s.name] = { count: 0, price: s.price }; });
-    activeApps.forEach(a => {
-      state.services.forEach(s => {
-        if ((a.serviceName || '').toLowerCase().includes((s.shortName || s.name).toLowerCase())) {
-          const k = s.shortName || s.name;
-          if (!counts[k]) counts[k] = { count: 0, price: s.price };
-          counts[k].count += 1;
-        }
-      });
+  const counts = {};
+  state.services.forEach(s => { counts[s.shortName || s.name] = { count: 0, price: s.price }; });
+  activeApps.forEach(a => {
+    state.services.forEach(s => {
+      if ((a.serviceName || '').toLowerCase().includes((s.shortName || s.name).toLowerCase())) {
+        const k = s.shortName || s.name;
+        if (!counts[k]) counts[k] = { count: 0, price: s.price };
+        counts[k].count += 1;
+      }
     });
+  });
 
-    const entries = Object.entries(counts).slice(0, 4);
-    const maxCount = Math.max(1, ...entries.map(e => e[1].count));
+  const entries = Object.entries(counts).slice(0, 4);
+  const maxCount = Math.max(1, ...entries.map(e => e[1].count));
 
-    barsBox.innerHTML = entries.map(([name, info]) => {
-      const pct = info.count > 0 ? Math.max(15, Math.round((info.count / maxCount) * 100)) : 8;
-      return `
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-semibold text-zinc-200">${name}</span>
-            <span class="text-[10px] text-[#e5a769] font-bold">${info.count} reserva(s) • R$ ${Number(info.price).toFixed(0)}</span>
-          </div>
-          <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden border border-white/[0.04]">
-            <div class="h-full rounded-full btn-lux-primary transition-all duration-500" style="width: ${pct}%"></div>
-          </div>
+  barsBox.innerHTML = entries.map(([name, info]) => {
+    const pct = info.count > 0 ? Math.max(15, Math.round((info.count / maxCount) * 100)) : 8;
+    return `
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="font-semibold text-zinc-200">${name}</span>
+          <span class="text-[10px] text-[#e5a769] font-bold">${info.count} reserva(s) • R$ ${Number(info.price).toFixed(0)}</span>
         </div>
-      `;
-    }).join('');
-  }
-
-  if (summaryBox) {
-    const adminsCount = state.users.filter(u => u.role === 'admin').length;
-    summaryBox.innerHTML = `
-      <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0e1016] border border-white/[0.05]">
-        <span class="text-zinc-400"><i class="fa-regular fa-clock text-[#e5a769] mr-1.5"></i>Agendamentos de Hoje</span>
-        <b class="text-white">${todayApps.length} horário(s)</b>
-      </div>
-      <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0e1016] border border-white/[0.05]">
-        <span class="text-zinc-400"><i class="fa-solid fa-scissors text-emerald-400 mr-1.5"></i>Serviços no Catálogo</span>
-        <b class="text-emerald-400">${state.services.length} ativos</b>
-      </div>
-      <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0e1016] border border-white/[0.05]">
-        <span class="text-zinc-400"><i class="fa-solid fa-user-shield text-sky-400 mr-1.5"></i>Acessos Administrativos</span>
-        <b class="text-sky-400">${adminsCount} autorizado(s)</b>
+        <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden border border-white/[0.04]">
+          <div class="h-full rounded-full btn-lux-primary transition-all duration-500" style="width: ${pct}%"></div>
+        </div>
       </div>
     `;
-  }
+  }).join('');
 }
 
 async function adminUpdateAppStatus(appId, status) {
@@ -1802,6 +2422,37 @@ async function adminUpdateAppStatus(appId, status) {
   }
 
   item.status = status;
+
+  // Se concluído, integra automaticamente com a Gestão Financeira (Caixa)
+  if (status === 'completed') {
+    const alreadyInFinance = state.finance.transactions.some(t => t.appointmentId === item._id);
+    if (!alreadyInFinance) {
+      const gross = Number(item.price || 0);
+      const tx = {
+        _id: `fin_app_${Date.now()}`,
+        appointmentId: item._id,
+        title: `${item.serviceName} - ${item.clientName}`,
+        type: 'income',
+        category: 'Serviços',
+        amount: gross,
+        paymentMethod: item.paymentMethod || 'pix',
+        feePercent: 0,
+        feeAmount: 0,
+        netAmount: gross,
+        status: 'paid',
+        dueDate: item.date || formatDateISO(new Date())
+      };
+      state.finance.transactions.unshift(tx);
+      try {
+        await fetch(`${API_BASE}/finance/transactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tx)
+        });
+      } catch (e) {}
+    }
+  }
+
   persistLocalData();
   try {
     await fetch(`${API_BASE}/appointments/${appId}/status`, {
@@ -1811,11 +2462,12 @@ async function adminUpdateAppStatus(appId, status) {
     });
   } catch (e) {}
   renderAdminAgenda();
+  renderAdminFinance();
 
   await showLuxAlert({
-    title: status === 'completed' ? 'Atendimento Concluído!' : 'Agendamento Cancelado',
+    title: status === 'completed' ? 'Atendimento Concluído & Lançado no Caixa!' : 'Agendamento Cancelado',
     message: status === 'completed'
-      ? `O atendimento de ${item.clientName} foi registrado como concluído.`
+      ? `O atendimento de ${item.clientName} (R$ ${Number(item.price).toFixed(2)}) foi concluído e somado automaticamente ao Fluxo de Caixa.`
       : `O horário de ${item.clientName} foi cancelado.`,
     type: status === 'completed' ? 'success' : 'warning'
   });
@@ -1861,7 +2513,6 @@ function handleServiceImageUpload(fileInput) {
   reader.onload = function (e) {
     const img = new Image();
     img.onload = function () {
-      // Redimensiona a foto para 650px mantendo proporção e leveza
       const canvas = document.createElement('canvas');
       const maxDim = 650;
       let w = img.width;
@@ -2067,25 +2718,41 @@ async function deleteAdminService(svcId) {
   });
 }
 
-// --- 5.3 ADMIN: PROFISSIONAIS & HORÁRIOS (ATÉ 23H + HORÁRIOS PERSONALIZADOS) ---
+// ========================================================
+// 5.3 ADMIN: FLEXIBILIZAÇÃO DA AGENDA DOS PROFISSIONAIS
+// (Jornada por Dia da Semana + Jornada por Período + Horários até 23h)
+// ========================================================
+function setBarberDayScheduleTab(barberId, dayKey) {
+  state.selectedBarberDayTab[barberId] = dayKey;
+  renderAdminBarbersList();
+}
+
 function renderAdminBarbersList() {
   const container = document.getElementById('admin-barbers-list');
   if (!container) return;
 
   const weekDays = [
-    { d: 0, label: 'Dom' },
-    { d: 1, label: 'Seg' },
-    { d: 2, label: 'Ter' },
-    { d: 3, label: 'Qua' },
-    { d: 4, label: 'Qui' },
-    { d: 5, label: 'Sex' },
-    { d: 6, label: 'Sáb' }
+    { d: 0, label: 'Dom', full: 'Domingo' },
+    { d: 1, label: 'Seg', full: 'Segunda' },
+    { d: 2, label: 'Ter', full: 'Terça' },
+    { d: 3, label: 'Qua', full: 'Quarta' },
+    { d: 4, label: 'Qui', full: 'Quinta' },
+    { d: 5, label: 'Sex', full: 'Sexta' },
+    { d: 6, label: 'Sáb', full: 'Sábado' }
   ];
 
   container.innerHTML = state.barbers.map(b => {
     const workDays = Array.isArray(b.workDays) ? b.workDays : [0, 1, 2, 3, 4, 5, 6];
     const blockedDates = Array.isArray(b.blockedDates) ? b.blockedDates : [];
     const workHours = Array.isArray(b.workHours) ? b.workHours : [...ALL_POSSIBLE_HOURS];
+    const specialPeriods = Array.isArray(b.specialPeriods) ? b.specialPeriods : [];
+    if (!b.daySchedules) b.daySchedules = createDefaultDaySchedules();
+
+    const activeDayTab = state.selectedBarberDayTab[b._id] || 'all';
+    const currentTabHours = activeDayTab === 'all'
+      ? workHours
+      : (Array.isArray(b.daySchedules[activeDayTab]) ? b.daySchedules[activeDayTab] : workHours);
+
     const allHoursForBarber = Array.from(new Set([...ALL_POSSIBLE_HOURS, ...(b.customHours || []), ...workHours])).sort();
 
     const daysButtons = weekDays.map(w => {
@@ -2101,8 +2768,22 @@ function renderAdminBarbersList() {
       `;
     }).join('');
 
+    const dayScheduleSelectorTabs = [
+      { key: 'all', label: 'Todos os Dias' },
+      ...weekDays.map(w => ({ key: String(w.d), label: w.label }))
+    ].map(tab => {
+      const isSel = activeDayTab === tab.key;
+      return `
+        <button type="button" onclick="setBarberDayScheduleTab('${b._id}', '${tab.key}')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
+          isSel ? 'bg-[#e5a769] text-[#0d0e12]' : 'bg-[#161822] text-zinc-400 hover:text-white border border-white/[0.06]'
+        }">
+          ${tab.label}
+        </button>
+      `;
+    }).join('');
+
     const hoursButtons = allHoursForBarber.map(h => {
-      const active = workHours.includes(h);
+      const active = currentTabHours.includes(h);
       return `
         <button type="button" onclick="toggleBarberWorkHour('${b._id}', '${h}')" class="py-2 rounded-xl text-[11px] font-bold border transition ${
           active
@@ -2124,15 +2805,27 @@ function renderAdminBarbersList() {
       `;
     }).join('');
 
+    const specialPeriodChips = specialPeriods.map(sp => `
+      <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-[10px]">
+        <div>
+          <span class="font-extrabold text-emerald-300 block">${sp.label || 'Jornada Estendida'}</span>
+          <span class="text-zinc-300">${sp.startDate} até ${sp.endDate} • ${(sp.hours || []).length} horários liberados</span>
+        </div>
+        <button type="button" onclick="removeBarberSpecialPeriod('${b._id}', '${sp._id}')" class="w-6 h-6 rounded-lg bg-red-500/20 text-red-300 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    `).join('');
+
     return `
-      <div class="admin-section-card p-4 md:p-6 space-y-4 text-xs">
+      <div class="admin-section-card p-4 md:p-6 space-y-5 text-xs">
         <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
           <div class="flex items-center space-x-3.5">
             <img src="${b.avatar || '/barbearia_logo.jpg'}" class="w-13 h-13 rounded-2xl object-cover border-2 border-[#e5a769]/50 shadow-md" style="width:52px;height:52px;" />
             <div>
               <div class="flex items-center space-x-2">
                 <h5 class="font-black text-white text-sm md:text-base">${b.name}</h5>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Agenda Ativa</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Controle Automático Ativo</span>
               </div>
               <span class="text-[11px] text-zinc-400 block mt-0.5">${b.role || 'Barbeiro Master'} • ${b.exp || ''}</span>
             </div>
@@ -2150,59 +2843,87 @@ function renderAdminBarbersList() {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
-          <!-- Coluna Esquerda: Dias da Semana + Definir Horário Personalizado + Bloqueio de Datas -->
+          <!-- Coluna Esquerda: Dias da Semana + Jornada por Período Específico + Horário Personalizado -->
           <div class="md:col-span-5 space-y-4">
             <!-- Dias da Semana Disponíveis -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-zinc-200">Dias da Semana que Atende:</span>
-                <span class="text-[10px] text-[#e5a769] font-semibold">${workDays.length} dias ativos</span>
+                <span class="text-[11px] font-bold text-zinc-200">1. Dias da Semana Ativos:</span>
+                <span class="text-[10px] text-[#e5a769] font-semibold">${workDays.length} dias</span>
               </div>
               <div class="grid grid-cols-7 gap-1.5">
                 ${daysButtons}
               </div>
             </div>
 
-            <!-- Definir / Adicionar Horário Personalizado (Ex: 21:30, 22:30, 23:00...) -->
-            <div class="p-3.5 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2">
-              <span class="text-[11px] font-bold text-[#e5a769] block">
-                <i class="fa-regular fa-clock mr-1"></i>Definir / Criar Horário Específico:
+            <!-- JORNADA POR PERÍODO ESPECÍFICO / ESTENDIDA -->
+            <div class="p-3.5 rounded-2xl bg-[#0e1015] border border-[#e5a769]/30 space-y-2.5">
+              <span class="text-[11px] font-extrabold text-[#e5a769] block">
+                <i class="fa-solid fa-calendar-plus mr-1"></i>2. Configurar Jornada por Período Específico / Estendida:
               </span>
-              <p class="text-[10px] text-zinc-400">Escolha qualquer horário (ex: 07:30, 21:30, 22:00, 23:30) para adicionar à grade:</p>
+              <p class="text-[10px] text-zinc-400">Vai fazer jornada estendida em um dia ou período específico? Configure abaixo:</p>
+              <input type="text" id="sp-label-${b._id}" placeholder="Motivo (Ex: Sábado Estendido / Fim de Ano)" class="w-full lux-input px-2.5 py-1.5 text-[11px] text-white" />
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="text-[9px] text-zinc-400 block mb-0.5">Data Inicial</span>
+                  <input type="date" id="sp-start-${b._id}" class="w-full lux-input px-2 py-1 text-[10px] text-white" />
+                </div>
+                <div>
+                  <span class="text-[9px] text-zinc-400 block mb-0.5">Data Final</span>
+                  <input type="date" id="sp-end-${b._id}" class="w-full lux-input px-2 py-1 text-[10px] text-white" />
+                </div>
+              </div>
+              <button type="button" onclick="addBarberSpecialPeriod('${b._id}')" class="w-full py-2 rounded-xl btn-lux-primary text-[10px] font-extrabold">
+                + Liberar Jornada Estendida (08h às 23h) no Período
+              </button>
+              ${specialPeriods.length > 0 ? `<div class="space-y-1.5 pt-1">${specialPeriodChips}</div>` : ''}
+            </div>
+
+            <!-- Definir / Adicionar Horário Personalizado -->
+            <div class="p-3.5 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2">
+              <span class="text-[11px] font-bold text-white block">
+                <i class="fa-regular fa-clock text-[#e5a769] mr-1"></i>Adicionar Horário Personalizado:
+              </span>
               <div class="flex items-center space-x-2">
                 <input type="time" id="custom-hour-input-${b._id}" value="21:30" class="flex-1 lux-input px-3 py-1.5 text-xs text-white" />
-                <button type="button" onclick="addCustomBarberHour('${b._id}')" class="px-3.5 py-2 rounded-xl btn-lux-primary text-[10px] font-extrabold shrink-0">
-                  + Adicionar Horário
+                <button type="button" onclick="addCustomBarberHour('${b._id}')" class="px-3.5 py-2 rounded-xl bg-[#1c1f28] hover:bg-[#e5a769] text-[#e5a769] hover:text-[#0d0e12] border border-[#e5a769]/40 text-[10px] font-extrabold transition shrink-0">
+                  + Incluir Horário
                 </button>
               </div>
             </div>
 
             <!-- Bloquear Data Específica (Feriado / Folga) -->
             <div class="p-3.5 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2">
-              <span class="text-[11px] font-bold text-zinc-200 block">Folgas / Datas Bloqueadas no Calendário:</span>
+              <span class="text-[11px] font-bold text-zinc-200 block">Folgas / Datas Bloqueadas:</span>
               <div class="flex items-center space-x-2">
                 <input type="date" id="block-date-input-${b._id}" class="flex-1 lux-input px-2.5 py-1.5 text-[11px] text-white" />
                 <button type="button" onclick="addBarberBlockedDate('${b._id}')" class="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/35 text-red-300 text-[10px] font-bold transition shrink-0">
-                  Bloquear Data
+                  Bloquear
                 </button>
               </div>
-              ${blockedDates.length > 0 ? `<div class="flex flex-wrap gap-1.5 pt-1">${blockedChips}</div>` : `<span class="text-[10px] text-zinc-500 block">Todas as datas liberadas no calendário.</span>`}
+              ${blockedDates.length > 0 ? `<div class="flex flex-wrap gap-1.5 pt-1">${blockedChips}</div>` : `<span class="text-[10px] text-zinc-500 block">Nenhuma data bloqueada.</span>`}
             </div>
           </div>
 
-          <!-- Coluna Direita: Grade Completa de Horários (08:00 até 23:00 + Personalizados) -->
-          <div class="md:col-span-7 space-y-2.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <span class="text-[11px] font-bold text-zinc-200 block">Horários Disponíveis (${workHours.length}/${allHoursForBarber.length} ativos):</span>
-                <span class="text-[10px] text-zinc-400">Inclui horários noturnos (21:00, 22:00, 23:00) • Toque para ativar/desativar</span>
-              </div>
-              <div class="flex items-center space-x-1.5">
+          <!-- Coluna Direita: JORNADA POR DIA DA SEMANA (Grade de Horários 08:00 até 23:00) -->
+          <div class="md:col-span-7 space-y-3">
+            <div class="p-3.5 rounded-2xl bg-[#0e1015] border border-white/[0.06] space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span class="text-[11px] font-extrabold text-white block">3. Jornada por Dia da Semana (${currentTabHours.length} horários ativos)</span>
+                  <span class="text-[10px] text-zinc-400">Personalize a jornada de cada dia da semana ou aplique em todos os dias:</span>
+                </div>
                 <button type="button" onclick="enableAllBarberSchedule('${b._id}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 text-[10px] font-extrabold transition">
                   <i class="fa-solid fa-bolt mr-1"></i>Liberar Todos (08h-23h)
                 </button>
               </div>
+
+              <!-- Abas de Dia da Semana para Jornada Individual -->
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                ${dayScheduleSelectorTabs}
+              </div>
             </div>
+
             <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
               ${hoursButtons}
             </div>
@@ -2213,6 +2934,56 @@ function renderAdminBarbersList() {
   }).join('');
 }
 
+async function addBarberSpecialPeriod(barberId) {
+  const b = state.barbers.find(item => item._id === barberId);
+  if (!b) return;
+
+  const label = document.getElementById(`sp-label-${barberId}`)?.value.trim() || 'Jornada Estendida';
+  const startDate = document.getElementById(`sp-start-${barberId}`)?.value || '';
+  const endDate = document.getElementById(`sp-end-${barberId}`)?.value || startDate;
+
+  if (!startDate) {
+    await showLuxAlert({
+      title: 'Selecione a Data',
+      message: 'Informe a data inicial para configurar a jornada por período específico.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  if (!Array.isArray(b.specialPeriods)) b.specialPeriods = [];
+  const allHours = Array.from(new Set([...ALL_POSSIBLE_HOURS, ...(b.customHours || [])])).sort();
+
+  b.specialPeriods.push({
+    _id: `sp_${Date.now()}`,
+    label,
+    startDate,
+    endDate: endDate >= startDate ? endDate : startDate,
+    hours: allHours
+  });
+
+  persistLocalData();
+  await syncBarberToServer(b);
+  renderAdminBarbersList();
+  renderHomeBarbers();
+
+  await showLuxAlert({
+    title: 'Jornada por Período Ativada!',
+    message: `O período "${label}" (${startDate} até ${endDate || startDate}) foi liberado com jornada estendida na agenda de ${b.name}.`,
+    type: 'success'
+  });
+}
+
+async function removeBarberSpecialPeriod(barberId, spId) {
+  const b = state.barbers.find(item => item._id === barberId);
+  if (!b || !Array.isArray(b.specialPeriods)) return;
+  b.specialPeriods = b.specialPeriods.filter(sp => sp._id !== spId);
+  persistLocalData();
+  await syncBarberToServer(b);
+  renderAdminBarbersList();
+  renderHomeBarbers();
+}
+
 async function addCustomBarberHour(barberId) {
   const b = state.barbers.find(item => item._id === barberId);
   const inp = document.getElementById(`custom-hour-input-${barberId}`);
@@ -2221,6 +2992,7 @@ async function addCustomBarberHour(barberId) {
   const newHour = inp.value.trim();
   if (!Array.isArray(b.customHours)) b.customHours = [...ALL_POSSIBLE_HOURS];
   if (!Array.isArray(b.workHours)) b.workHours = [...ALL_POSSIBLE_HOURS];
+  if (!b.daySchedules) b.daySchedules = createDefaultDaySchedules();
 
   if (!b.customHours.includes(newHour)) {
     b.customHours.push(newHour);
@@ -2230,6 +3002,14 @@ async function addCustomBarberHour(barberId) {
     b.workHours.push(newHour);
     b.workHours.sort();
   }
+  for (let d = 0; d <= 6; d++) {
+    const arr = b.daySchedules[String(d)] || [];
+    if (!arr.includes(newHour)) {
+      arr.push(newHour);
+      arr.sort();
+      b.daySchedules[String(d)] = arr;
+    }
+  }
 
   persistLocalData();
   await syncBarberToServer(b);
@@ -2237,7 +3017,7 @@ async function addCustomBarberHour(barberId) {
 
   await showLuxAlert({
     title: 'Horário Adicionado!',
-    message: `O horário ${newHour} foi incluído e liberado na agenda de ${b.name}.`,
+    message: `O horário ${newHour} foi incluído e liberado na jornada de ${b.name}.`,
     type: 'success'
   });
 }
@@ -2249,6 +3029,10 @@ async function enableAllBarberSchedule(barberId) {
   const merged = Array.from(new Set([...ALL_POSSIBLE_HOURS, ...(b.customHours || [])])).sort();
   b.customHours = merged;
   b.workHours = [...merged];
+  b.daySchedules = {};
+  for (let d = 0; d <= 6; d++) {
+    b.daySchedules[String(d)] = [...merged];
+  }
   b.blockedDates = [];
   persistLocalData();
   await syncBarberToServer(b);
@@ -2257,7 +3041,7 @@ async function enableAllBarberSchedule(barberId) {
 
   await showLuxAlert({
     title: 'Todos os Horários Liberados!',
-    message: `Todos os dias e horários (08:00 às 23:00) de ${b.name} estão disponíveis.`,
+    message: `Todos os dias da semana e horários (08:00 às 23:00) de ${b.name} estão disponíveis.`,
     type: 'success'
   });
 }
@@ -2279,7 +3063,7 @@ function resetAdminBarberForm() {
   document.getElementById('admin-barber-name').value = '';
   document.getElementById('admin-barber-exp').value = '';
   const title = document.getElementById('admin-barber-form-title');
-  if (title) title.textContent = 'Adicionar / Editar Barbeiro';
+  if (title) title.textContent = 'Flexibilização da Agenda dos Profissionais';
   const cancelBtn = document.getElementById('btn-cancel-barber-edit');
   if (cancelBtn) cancelBtn.classList.add('hidden');
 }
@@ -2315,7 +3099,9 @@ async function saveAdminBarberBasic() {
       workDays: [0, 1, 2, 3, 4, 5, 6],
       blockedDates: [],
       workHours: [...ALL_POSSIBLE_HOURS],
-      customHours: [...ALL_POSSIBLE_HOURS]
+      customHours: [...ALL_POSSIBLE_HOURS],
+      daySchedules: createDefaultDaySchedules(),
+      specialPeriods: []
     };
     state.barbers.push(newB);
     try {
@@ -2334,7 +3120,7 @@ async function saveAdminBarberBasic() {
 
   await showLuxAlert({
     title: 'Profissional Salvo!',
-    message: `Os dados de ${name} foram atualizados com sucesso.`,
+    message: `Os dados e a jornada de ${name} foram atualizados com sucesso.`,
     type: 'success'
   });
 }
@@ -2391,13 +3177,40 @@ async function toggleBarberWorkHour(barberId, hourStr) {
   const b = state.barbers.find(item => item._id === barberId);
   if (!b) return;
   if (!Array.isArray(b.workHours)) b.workHours = [];
+  if (!b.daySchedules) b.daySchedules = createDefaultDaySchedules();
 
-  const idx = b.workHours.indexOf(hourStr);
-  if (idx >= 0) {
-    b.workHours.splice(idx, 1);
+  const activeDayTab = state.selectedBarberDayTab[b._id] || 'all';
+
+  if (activeDayTab === 'all') {
+    const idx = b.workHours.indexOf(hourStr);
+    const shouldAdd = idx < 0;
+    if (shouldAdd) {
+      b.workHours.push(hourStr);
+      b.workHours.sort();
+    } else {
+      b.workHours.splice(idx, 1);
+    }
+    for (let d = 0; d <= 6; d++) {
+      const arr = Array.isArray(b.daySchedules[String(d)]) ? b.daySchedules[String(d)] : [...b.workHours];
+      const dIdx = arr.indexOf(hourStr);
+      if (shouldAdd && dIdx < 0) {
+        arr.push(hourStr);
+        arr.sort();
+      } else if (!shouldAdd && dIdx >= 0) {
+        arr.splice(dIdx, 1);
+      }
+      b.daySchedules[String(d)] = arr;
+    }
   } else {
-    b.workHours.push(hourStr);
-    b.workHours.sort();
+    const dayArr = Array.isArray(b.daySchedules[activeDayTab]) ? [...b.daySchedules[activeDayTab]] : [...b.workHours];
+    const idx = dayArr.indexOf(hourStr);
+    if (idx >= 0) {
+      dayArr.splice(idx, 1);
+    } else {
+      dayArr.push(hourStr);
+      dayArr.sort();
+    }
+    b.daySchedules[activeDayTab] = dayArr;
   }
 
   persistLocalData();
@@ -2448,7 +3261,655 @@ async function syncBarberToServer(barber) {
   } catch (e) {}
 }
 
-// --- 5.4 ADMIN: CONTROLE DE ACESSOS & LISTA DE USUÁRIOS ---
+// ========================================================
+// 5.4 ADMIN: GESTÃO FINANCEIRA (CAIXA, CONTAS A PAGAR/RECEBER, TAXAS)
+// ========================================================
+function setFinanceFilter(filter) {
+  state.financeFilter = filter;
+  ['all', 'income', 'expense', 'pending'].forEach(f => {
+    const btn = document.getElementById(`fin-filter-${f}`);
+    if (btn) {
+      btn.className = f === filter
+        ? 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#e5a769] text-[#0d0e12]'
+        : 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#161822] text-zinc-400 hover:text-white';
+    }
+  });
+  renderAdminFinance();
+}
+
+function renderAdminFinance() {
+  const listEl = document.getElementById('admin-finance-list');
+  if (!listEl) return;
+
+  if (!state.finance || !Array.isArray(state.finance.transactions)) {
+    state.finance = JSON.parse(JSON.stringify(DEFAULT_FINANCE));
+  }
+
+  const fees = state.finance.settings || { creditFeePercent: 3.99, debitFeePercent: 1.99, pixFeePercent: 0 };
+  const fCred = document.getElementById('fin-fee-credit');
+  const fDeb = document.getElementById('fin-fee-debit');
+  const fPix = document.getElementById('fin-fee-pix');
+  if (fCred) fCred.value = fees.creditFeePercent;
+  if (fDeb) fDeb.value = fees.debitFeePercent;
+  if (fPix) fPix.value = fees.pixFeePercent;
+
+  const txs = state.finance.transactions;
+
+  const paidIncomes = txs.filter(t => t.type === 'income' && t.status === 'paid');
+  const pendingReceivables = txs.filter(t => t.type === 'income' && t.status === 'pending');
+  const paidExpenses = txs.filter(t => t.type === 'expense' && t.status === 'paid');
+  const pendingPayables = txs.filter(t => t.type === 'expense' && t.status === 'pending');
+
+  const totalIncomeNet = paidIncomes.reduce((acc, t) => acc + Number(t.netAmount ?? t.amount ?? 0), 0);
+  const totalReceivable = pendingReceivables.reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const totalExpense = paidExpenses.reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const totalPayable = pendingPayables.reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const totalFees = txs.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.feeAmount || 0), 0);
+  const cashBalance = totalIncomeNet - totalExpense;
+
+  const balEl = document.getElementById('fin-stat-balance');
+  const incEl = document.getElementById('fin-stat-income');
+  const recSubEl = document.getElementById('fin-stat-receivable-sub');
+  const expEl = document.getElementById('fin-stat-expense');
+  const paySubEl = document.getElementById('fin-stat-payable-sub');
+  const feesEl = document.getElementById('fin-stat-fees');
+
+  if (balEl) balEl.textContent = `R$ ${cashBalance.toFixed(2).replace('.', ',')}`;
+  if (incEl) incEl.textContent = `R$ ${totalIncomeNet.toFixed(2).replace('.', ',')}`;
+  if (recSubEl) recSubEl.textContent = `Contas a receber: R$ ${totalReceivable.toFixed(2).replace('.', ',')}`;
+  if (expEl) expEl.textContent = `R$ ${totalExpense.toFixed(2).replace('.', ',')}`;
+  if (paySubEl) paySubEl.textContent = `Contas a pagar: R$ ${totalPayable.toFixed(2).replace('.', ',')}`;
+  if (feesEl) feesEl.textContent = `R$ ${totalFees.toFixed(2).replace('.', ',')}`;
+
+  let filtered = [...txs];
+  if (state.financeFilter === 'income') filtered = filtered.filter(t => t.type === 'income');
+  else if (state.financeFilter === 'expense') filtered = filtered.filter(t => t.type === 'expense');
+  else if (state.financeFilter === 'pending') filtered = filtered.filter(t => t.status === 'pending');
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="p-6 text-center text-xs text-zinc-500">Nenhuma movimentação financeira para este filtro.</div>`;
+    return;
+  }
+
+  const methodNames = { pix: 'PIX', credit: 'Cartão Crédito', debit: 'Cartão Débito', cash: 'Dinheiro' };
+
+  listEl.innerHTML = filtered.map(t => {
+    const isIncome = t.type === 'income';
+    const isPending = t.status === 'pending';
+    return `
+      <div class="admin-item-card p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+        <div class="flex items-start space-x-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl ${isIncome ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'} flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid ${isIncome ? 'fa-arrow-up-right-dots' : 'fa-arrow-down-short-wide'}"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-white truncate">${t.title}</span>
+              <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${
+                isPending
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/35'
+                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+              }">
+                ${isPending ? (isIncome ? 'A Receber' : 'A Pagar') : (isIncome ? 'Recebido' : 'Pago')}
+              </span>
+            </div>
+            <span class="text-[10px] text-zinc-400 block mt-0.5">
+              ${t.category || 'Geral'} • ${methodNames[t.paymentMethod] || 'PIX'} • Data: ${t.dueDate || '-'}
+              ${t.feeAmount > 0 ? ` • Taxa Cartão: -R$ ${Number(t.feeAmount).toFixed(2)}` : ''}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 self-end sm:self-center shrink-0">
+          <div class="text-right mr-1">
+            <span class="font-black text-sm ${isIncome ? 'text-emerald-400' : 'text-red-400'} block">
+              ${isIncome ? '+' : '-'} R$ ${Number(t.netAmount ?? t.amount ?? 0).toFixed(2).replace('.', ',')}
+            </span>
+            ${t.feeAmount > 0 ? `<span class="text-[9px] text-zinc-500 block">Bruto: R$ ${Number(t.amount).toFixed(2)}</span>` : ''}
+          </div>
+          ${isPending ? `
+            <button type="button" onclick="settleFinanceTransaction('${t._id}')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 text-[10px] font-bold">
+              <i class="fa-solid fa-check mr-1"></i>Dar Baixa
+            </button>
+          ` : ''}
+          <button type="button" onclick="deleteFinanceTransaction('${t._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 flex items-center justify-center">
+            <i class="fa-regular fa-trash-can text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function saveFinanceFeeSettings() {
+  state.finance.settings = {
+    creditFeePercent: parseFloat(document.getElementById('fin-fee-credit')?.value || '3.99'),
+    debitFeePercent: parseFloat(document.getElementById('fin-fee-debit')?.value || '1.99'),
+    pixFeePercent: parseFloat(document.getElementById('fin-fee-pix')?.value || '0')
+  };
+  persistLocalData();
+  try {
+    await fetch(`${API_BASE}/finance/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state.finance.settings)
+    });
+  } catch (e) {}
+
+  await showLuxAlert({
+    title: 'Taxas de Cartão Atualizadas!',
+    message: 'Os percentuais de crédito, débito e PIX foram salvos para os próximos cálculos de fluxo de caixa.',
+    type: 'success'
+  });
+}
+
+async function saveFinanceTransaction() {
+  const title = document.getElementById('fin-tx-title')?.value.trim() || '';
+  const type = document.getElementById('fin-tx-type')?.value || 'income';
+  const amount = parseFloat(document.getElementById('fin-tx-amount')?.value || '0');
+  const paymentMethod = document.getElementById('fin-tx-method')?.value || 'pix';
+  const status = document.getElementById('fin-tx-status')?.value || 'paid';
+  const category = document.getElementById('fin-tx-category')?.value || 'Serviços';
+  const dueDate = document.getElementById('fin-tx-date')?.value || formatDateISO(new Date());
+
+  if (!title || isNaN(amount) || amount <= 0) {
+    await showLuxAlert({
+      title: 'Preencha os Dados',
+      message: 'Informe a descrição e um valor válido em R$ para registrar no financeiro.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  const fees = state.finance.settings || DEFAULT_FINANCE.settings;
+  let feePercent = 0;
+  if (type === 'income') {
+    if (paymentMethod === 'credit') feePercent = Number(fees.creditFeePercent || 0);
+    else if (paymentMethod === 'debit') feePercent = Number(fees.debitFeePercent || 0);
+    else if (paymentMethod === 'pix') feePercent = Number(fees.pixFeePercent || 0);
+  }
+  const feeAmount = Number(((amount * feePercent) / 100).toFixed(2));
+  const netAmount = type === 'income' ? Number((amount - feeAmount).toFixed(2)) : amount;
+
+  const newTx = {
+    _id: `fin_${Date.now()}`,
+    title,
+    type,
+    category,
+    amount,
+    paymentMethod,
+    feePercent,
+    feeAmount,
+    netAmount,
+    status,
+    dueDate
+  };
+
+  state.finance.transactions.unshift(newTx);
+  persistLocalData();
+
+  try {
+    await fetch(`${API_BASE}/finance/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTx)
+    });
+  } catch (e) {}
+
+  document.getElementById('fin-tx-title').value = '';
+  document.getElementById('fin-tx-amount').value = '';
+  renderAdminFinance();
+
+  await showLuxAlert({
+    title: 'Lançamento Registrado!',
+    message: `"${title}" foi adicionado ao controle financeiro.`,
+    type: 'success'
+  });
+}
+
+async function settleFinanceTransaction(txId) {
+  const tx = state.finance.transactions.find(t => t._id === txId);
+  if (!tx) return;
+  tx.status = 'paid';
+  persistLocalData();
+  try {
+    await fetch(`${API_BASE}/finance/transactions/${txId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'paid' })
+    });
+  } catch (e) {}
+  renderAdminFinance();
+
+  await showLuxAlert({
+    title: 'Conta Baixada!',
+    message: `O lançamento "${tx.title}" foi quitado e atualizado no saldo em caixa.`,
+    type: 'success'
+  });
+}
+
+async function deleteFinanceTransaction(txId) {
+  const ok = await showLuxConfirm({
+    title: 'Excluir Lançamento Financeiro?',
+    message: 'Deseja realmente remover este registro do fluxo de caixa?',
+    confirmText: 'Sim, Excluir',
+    danger: true
+  });
+  if (!ok) return;
+
+  state.finance.transactions = state.finance.transactions.filter(t => t._id !== txId);
+  persistLocalData();
+  try {
+    await fetch(`${API_BASE}/finance/transactions/${txId}`, { method: 'DELETE' });
+  } catch (e) {}
+  renderAdminFinance();
+}
+
+// ========================================================
+// 5.5 ADMIN: ENVIO DE NOTÍCIAS E PROMOÇÕES
+// (Com rastreamento de Quem Recebeu e Quando / Quem Leu e Quando)
+// ========================================================
+function togglePromoRecipientsGroup() {
+  const type = document.getElementById('promo-target-type')?.value || 'all';
+  const box = document.getElementById('promo-group-selector');
+  if (!box) return;
+
+  if (type === 'group') {
+    box.classList.remove('hidden');
+    box.innerHTML = state.users.map(u => `
+      <label class="flex items-center space-x-2 p-1.5 rounded-lg bg-[#161822] cursor-pointer">
+        <input type="checkbox" value="${u._id}" class="promo-recipient-chk accent-[#e5a769]" checked />
+        <span class="text-[11px] text-white font-semibold">${u.name}</span>
+        <span class="text-[9px] text-zinc-400">(${u.email})</span>
+      </label>
+    `).join('');
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
+async function sendPromotionCampaign() {
+  const title = document.getElementById('promo-title')?.value.trim() || '';
+  const message = document.getElementById('promo-message')?.value.trim() || '';
+  const discountPercent = parseInt(document.getElementById('promo-discount')?.value || '0', 10);
+  const eventDate = document.getElementById('promo-event-date')?.value || '';
+  const chApp = Boolean(document.getElementById('promo-ch-app')?.checked);
+  const chSms = Boolean(document.getElementById('promo-ch-sms')?.checked);
+  const targetType = document.getElementById('promo-target-type')?.value || 'all';
+
+  if (!title || !message) {
+    await showLuxAlert({
+      title: 'Preencha a Campanha',
+      message: 'Informe o título e a mensagem do evento ou promoção para enviar aos clientes.',
+      type: 'warning'
+    });
+    return;
+  }
+
+  let targetUsers = [...state.users];
+  if (targetType === 'group') {
+    const checkedIds = Array.from(document.querySelectorAll('.promo-recipient-chk:checked')).map(el => el.value);
+    targetUsers = state.users.filter(u => checkedIds.includes(u._id));
+  }
+
+  const nowStr = formatNowTimestamp();
+  const recipients = targetUsers.map(u => ({
+    userId: u._id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone || '(11) 99999-9999',
+    receivedAt: nowStr,
+    readAt: state.currentUser && state.currentUser._id === u._id ? nowStr : null
+  }));
+
+  const channels = [];
+  if (chApp) channels.push('app');
+  if (chSms) channels.push('sms');
+
+  const newPromo = {
+    _id: `promo_${Date.now()}`,
+    title,
+    message,
+    discountPercent: isNaN(discountPercent) ? 0 : discountPercent,
+    eventDate,
+    channels,
+    targetType,
+    createdAt: nowStr,
+    recipients
+  };
+
+  state.promotions.unshift(newPromo);
+  persistLocalData();
+
+  try {
+    await fetch(`${API_BASE}/promotions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPromo)
+    });
+  } catch (e) {}
+
+  if (chApp) {
+    triggerBrowserPushNotification(title, message);
+  }
+
+  document.getElementById('promo-title').value = '';
+  document.getElementById('promo-message').value = '';
+  document.getElementById('promo-discount').value = '';
+
+  renderAdminPromotions();
+  updateClientNotificationBadge();
+  renderHomeActivePromoBanner();
+
+  await showLuxAlert({
+    title: 'Promoção Disparada com Sucesso!',
+    message: `Enviada para ${recipients.length} cliente(s) via ${channels.map(c => c.toUpperCase()).join(' + ')}. Acompanhe ao lado quem recebeu e quem leu!`,
+    type: 'success'
+  });
+}
+
+async function simulateClientReadPromo(promoId, userId) {
+  const promo = state.promotions.find(p => p._id === promoId);
+  if (!promo || !Array.isArray(promo.recipients)) return;
+  const rec = promo.recipients.find(r => r.userId === userId);
+  if (!rec) return;
+
+  const nowStr = formatNowTimestamp();
+  if (!rec.receivedAt) rec.receivedAt = nowStr;
+  rec.readAt = nowStr;
+  persistLocalData();
+
+  try {
+    await fetch(`${API_BASE}/promotions/${promoId}/receipt`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: rec.userId, email: rec.email, action: 'read' })
+    });
+  } catch (e) {}
+
+  renderAdminPromotions();
+}
+
+async function deletePromotionCampaign(promoId) {
+  const ok = await showLuxConfirm({
+    title: 'Excluir Campanha?',
+    message: 'Deseja remover esta promoção e seu histórico de leitura?',
+    confirmText: 'Sim, Excluir',
+    danger: true
+  });
+  if (!ok) return;
+
+  state.promotions = state.promotions.filter(p => p._id !== promoId);
+  persistLocalData();
+  try {
+    await fetch(`${API_BASE}/promotions/${promoId}`, { method: 'DELETE' });
+  } catch (e) {}
+  renderAdminPromotions();
+  updateClientNotificationBadge();
+}
+
+function renderAdminPromotions() {
+  const listEl = document.getElementById('admin-promotions-list');
+  const badgeEl = document.getElementById('admin-promos-count-badge');
+  if (badgeEl) {
+    badgeEl.textContent = `${state.promotions.length} campanha(s)`;
+  }
+  if (!listEl) return;
+
+  if (state.promotions.length === 0) {
+    listEl.innerHTML = `<div class="p-6 text-center text-xs text-zinc-500">Nenhuma notícia ou promoção enviada ainda.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = state.promotions.map(p => {
+    const recs = Array.isArray(p.recipients) ? p.recipients : [];
+    const receivedCount = recs.filter(r => r.receivedAt).length;
+    const readCount = recs.filter(r => r.readAt).length;
+
+    const recipientsRows = recs.map(r => `
+      <div class="p-2 rounded-xl bg-[#0b0d12] border border-white/[0.04] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px]">
+        <div class="font-bold text-white truncate">${r.name} <span class="text-zinc-500 font-normal">(${r.phone || r.email})</span></div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30">
+            <i class="fa-solid fa-check mr-1"></i>Recebeu: ${r.receivedAt || '-'}
+          </span>
+          ${r.readAt ? `
+            <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+              <i class="fa-solid fa-check-double mr-1"></i>Leu: ${r.readAt}
+            </span>
+          ` : `
+            <button type="button" onclick="simulateClientReadPromo('${p._id}', '${r.userId}')" class="px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold">
+              ⏳ Aguardando leitura (Marcar Lido)
+            </button>
+          `}
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="admin-item-card p-4 space-y-3 text-xs">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h5 class="font-extrabold text-white text-sm">${p.title}</h5>
+              ${p.discountPercent ? `<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#e5a769] text-[#0d0e12]">${p.discountPercent}% OFF</span>` : ''}
+            </div>
+            <p class="text-[11px] text-zinc-300 mt-1">${p.message}</p>
+            <span class="text-[10px] text-zinc-500 block mt-1">
+              Disparado em: ${p.createdAt} • Canais: ${(p.channels || ['app']).map(c => c.toUpperCase()).join(' + ')}
+            </span>
+          </div>
+          <button type="button" onclick="deletePromotionCampaign('${p._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 flex items-center justify-center shrink-0">
+            <i class="fa-regular fa-trash-can text-[10px]"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-3 text-[10px] pt-1">
+          <span class="text-sky-400 font-bold"><i class="fa-solid fa-paper-plane mr-1"></i>Receberam: ${receivedCount}/${recs.length}</span>
+          <span class="text-emerald-400 font-bold"><i class="fa-solid fa-eye mr-1"></i>Leram: ${readCount}/${recs.length}</span>
+        </div>
+
+        <div class="space-y-1.5 pt-1">
+          ${recipientsRows}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========================================================
+// 5.6 ADMIN: RELATÓRIOS GERENCIAIS (BI & TOMADA DE DECISÃO)
+// ========================================================
+function renderAdminReports() {
+  const weekBox = document.getElementById('report-chart-weekdays');
+  const hourBox = document.getElementById('report-chart-hours');
+  const platBox = document.getElementById('report-chart-platforms');
+  const monthBox = document.getElementById('report-chart-months');
+  const insightBox = document.getElementById('reports-smart-insight-card');
+  if (!weekBox) return;
+
+  const activeApps = state.appointments.filter(a => a.status !== 'cancelled');
+
+  // 1. Relatório por Dia da Semana
+  const dayNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+
+  activeApps.forEach(a => {
+    if (a.date) {
+      const [y, m, d] = a.date.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      if (!isNaN(dt.getTime())) {
+        dayCounts[dt.getDay()]++;
+      }
+    }
+  });
+
+  // Identifica o dia útil com menor movimento (priorizando Terça-feira em caso de empate, como no exemplo do usuário!)
+  let slowestDayIdx = 2; // Terça-feira padrão
+  let minVal = dayCounts[2];
+  [1, 2, 3, 4, 5, 6, 0].forEach(idx => {
+    if (dayCounts[idx] < minVal) {
+      minVal = dayCounts[idx];
+      slowestDayIdx = idx;
+    }
+  });
+  const slowestDayName = dayNames[slowestDayIdx];
+
+  if (insightBox) {
+    insightBox.innerHTML = `
+      <div class="space-y-1">
+        <span class="text-[10px] uppercase tracking-widest font-extrabold text-[#e5a769] inline-flex items-center space-x-1.5">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span>Inteligência de Negócio • Ação Recomendada</span>
+        </span>
+        <h4 class="text-sm md:text-base font-black text-white">
+          Menor movimento detectado: <span class="text-[#e5a769]">${slowestDayName} (${minVal} agendamento${minVal === 1 ? '' : 's'})</span>
+        </h4>
+        <p class="text-[11px] text-zinc-300">
+          Horário vazio ninguém quer! Envie agora uma promoção com <b>20% de desconto</b> para todos os seus clientes agendarem na <b>${slowestDayName}</b>.
+        </p>
+      </div>
+      <button type="button" onclick="createPromoForSlowDay('${slowestDayName}')" class="px-4 py-2.5 rounded-xl btn-lux-primary text-xs font-extrabold shrink-0 shadow-lg flex items-center space-x-2">
+        <i class="fa-solid fa-bullhorn"></i>
+        <span>Enviar Promoção 20% OFF (${slowestDayName.split('-')[0]})</span>
+      </button>
+    `;
+  }
+
+  const maxWeek = Math.max(1, ...dayCounts);
+  weekBox.innerHTML = dayNames.map((name, idx) => {
+    const c = dayCounts[idx];
+    const pct = c > 0 ? Math.max(14, Math.round((c / maxWeek) * 100)) : 6;
+    const isSlowest = idx === slowestDayIdx;
+    return `
+      <div class="space-y-1 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold ${isSlowest ? 'text-amber-300' : 'text-zinc-200'}">
+            ${name} ${isSlowest ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 ml-1">Menor Movimento</span>' : ''}
+          </span>
+          <span class="text-[10px] font-bold text-[#e5a769]">${c} agendamento(s)</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden">
+          <div class="h-full rounded-full ${isSlowest ? 'bg-amber-400' : 'btn-lux-primary'}" style="width:${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // 2. Relatório por Horário
+  if (hourBox) {
+    const hourMap = {};
+    ['09:00', '11:00', '14:00', '16:00', '18:00', '20:00', '22:00'].forEach(h => { hourMap[h] = 0; });
+    activeApps.forEach(a => {
+      const h = a.time || '10:00';
+      hourMap[h] = (hourMap[h] || 0) + 1;
+    });
+    const hourEntries = Object.entries(hourMap).sort((a, b) => a[0].localeCompare(b[0])).slice(0, 7);
+    const maxHr = Math.max(1, ...hourEntries.map(e => e[1]));
+    hourBox.innerHTML = hourEntries.map(([hr, count]) => {
+      const pct = count > 0 ? Math.max(14, Math.round((count / maxHr) * 100)) : 6;
+      return `
+        <div class="space-y-1 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-zinc-200">Horário das ${hr}</span>
+            <span class="text-[10px] font-bold text-emerald-400">${count} atendimento(s)</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden">
+            <div class="h-full rounded-full bg-emerald-400" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 3. Relatório por Plataforma
+  if (platBox) {
+    const platCounts = {
+      'App Mobile (PWA)': 0,
+      'Web Desktop': 0,
+      'Encaixe Presencial': 0
+    };
+    activeApps.forEach(a => {
+      if (a.isFitIn || a.platform === 'Encaixe Presencial') platCounts['Encaixe Presencial']++;
+      else if (a.platform === 'Web Desktop') platCounts['Web Desktop']++;
+      else platCounts['App Mobile (PWA)']++;
+    });
+    const maxPlat = Math.max(1, ...Object.values(platCounts));
+    platBox.innerHTML = Object.entries(platCounts).map(([plat, count]) => {
+      const pct = count > 0 ? Math.max(15, Math.round((count / maxPlat) * 100)) : 8;
+      return `
+        <div class="space-y-1 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-zinc-200">${plat}</span>
+            <span class="text-[10px] font-bold text-sky-400">${count} reserva(s)</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden">
+            <div class="h-full rounded-full bg-sky-400" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 4. Relatório por Mês
+  if (monthBox) {
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthData = {};
+    const curMonth = new Date().getMonth();
+    [curMonth - 2, curMonth - 1, curMonth, curMonth + 1].forEach(mIdx => {
+      const normalized = (mIdx + 12) % 12;
+      monthData[monthNames[normalized]] = { count: 0, rev: 0 };
+    });
+
+    activeApps.forEach(a => {
+      if (a.date) {
+        const parts = a.date.split('-').map(Number);
+        const mName = monthNames[(parts[1] || 1) - 1];
+        if (!monthData[mName]) monthData[mName] = { count: 0, rev: 0 };
+        monthData[mName].count++;
+        monthData[mName].rev += Number(a.price || 0);
+      }
+    });
+
+    const mEntries = Object.entries(monthData);
+    const maxM = Math.max(1, ...mEntries.map(e => e[1].count));
+    monthBox.innerHTML = mEntries.map(([mLabel, info]) => {
+      const pct = info.count > 0 ? Math.max(15, Math.round((info.count / maxM) * 100)) : 8;
+      return `
+        <div class="space-y-1 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-zinc-200">Mês: ${mLabel}</span>
+            <span class="text-[10px] font-bold text-[#e5a769]">${info.count} agend. • R$ ${info.rev.toFixed(2).replace('.', ',')}</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-[#0c0e13] overflow-hidden">
+            <div class="h-full rounded-full btn-lux-primary" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function createPromoForSlowDay(dayName) {
+  switchAdminSubTab('promotions');
+  const titleInp = document.getElementById('promo-title');
+  const msgInp = document.getElementById('promo-message');
+  const discInp = document.getElementById('promo-discount');
+
+  if (titleInp) titleInp.value = `Promoção de ${dayName}: 20% de Desconto!`;
+  if (msgInp) {
+    msgInp.value = `Aproveite 20% OFF em qualquer serviço ou combo agendando seu horário nesta ${dayName} pelo nosso aplicativo!`;
+  }
+  if (discInp) discInp.value = '20';
+
+  showLuxAlert({
+    title: 'Campanha Preenchida Automaticamente!',
+    message: `Preparamos a promoção de 20% de desconto para ${dayName}. Revise os detalhes e clique em "Disparar Campanha Agora"!`,
+    type: 'info'
+  });
+}
+
+// --- 5.7 ADMIN: CONTROLE DE ACESSOS & LISTA DE USUÁRIOS ---
 function renderAdminUsersList() {
   const listEl = document.getElementById('admin-users-list');
   const badgeEl = document.getElementById('admin-users-count-badge');
@@ -2646,7 +4107,7 @@ async function adminDeleteUser(userId) {
   });
 }
 
-// --- 5.5 ADMIN: CONFIGURAÇÕES DA BARBEARIA ---
+// --- 5.8 ADMIN: CONFIGURAÇÕES DA BARBEARIA ---
 function renderAdminShopSettingsForm() {
   const n = document.getElementById('admin-shop-name');
   const s = document.getElementById('admin-shop-slogan');
@@ -2687,7 +4148,6 @@ async function saveAdminShopSettings() {
 // 6. NAVEGAÇÃO DE TELAS & PROTEÇÃO DO PAINEL ADMIN
 // ========================================================
 async function switchTab(tab) {
-  // Bloqueia acesso ao painel administrativo se o usuário não tiver permissão de admin
   if (tab === 'admin') {
     if (!state.currentUser || state.currentUser.role !== 'admin') {
       await showLuxAlert({

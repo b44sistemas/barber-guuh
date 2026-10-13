@@ -123,6 +123,23 @@ DEFAULT_DB = {
         }
     ],
     "appointments": [],
+    "promotions": [],
+    "finance": {
+        "settings": {
+            "creditFeePercent": 3.99,
+            "debitFeePercent": 1.99,
+            "pixFeePercent": 0.0
+        },
+        "transactions": []
+    },
+    "reminders": {
+        "clientPush": True,
+        "clientEmail": True,
+        "proPush": True,
+        "proEmail": True,
+        "proSms": True,
+        "minutesBefore": 60
+    },
     "settings": {
         "name": "Guuh Barbeiro",
         "slogan": "Estilo • Confiança • Atitude",
@@ -219,10 +236,45 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
             for a in DB["appointments"]:
                 if a["_id"] == app_id:
                     a["status"] = body.get("status", a["status"])
+                    if "reminderSentAt" in body:
+                        a["reminderSentAt"] = body["reminderSentAt"]
                     save_db(DB)
                     self.send_json({"success": True, "appointment": a})
                     return
             self.send_json({"success": True})
+            return
+
+        if path.startswith('/api/promotions/') and path.endswith('/receipt'):
+            p_id = path.split('/')[3]
+            for p in DB.get("promotions", []):
+                if p.get("_id") == p_id:
+                    save_db(DB)
+                    self.send_json({"success": True, "promotion": p})
+                    return
+            self.send_json({"success": True})
+            return
+
+        if path.startswith('/api/finance/transactions/'):
+            tx_id = path.split('/')[4]
+            for t in DB.get("finance", {}).get("transactions", []):
+                if t.get("_id") == tx_id:
+                    t.update(body)
+                    save_db(DB)
+                    self.send_json({"success": True, "transaction": t})
+                    return
+            self.send_json({"success": True})
+            return
+
+        if path == '/api/finance/settings':
+            DB["finance"]["settings"].update(body)
+            save_db(DB)
+            self.send_json({"success": True, "settings": DB["finance"]["settings"]})
+            return
+
+        if path == '/api/reminders/settings':
+            DB["reminders"].update(body)
+            save_db(DB)
+            self.send_json({"success": True, "reminders": DB["reminders"]})
             return
 
         if path.startswith('/api/services/'):
@@ -285,6 +337,20 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "message": "Removido"})
             return
 
+        if path.startswith('/api/promotions/'):
+            p_id = path.split('/')[3]
+            DB["promotions"] = [p for p in DB.get("promotions", []) if p.get("_id") != p_id]
+            save_db(DB)
+            self.send_json({"success": True})
+            return
+
+        if path.startswith('/api/finance/transactions/'):
+            tx_id = path.split('/')[4]
+            DB["finance"]["transactions"] = [t for t in DB.get("finance", {}).get("transactions", []) if t.get("_id") != tx_id]
+            save_db(DB)
+            self.send_json({"success": True})
+            return
+
         if path.startswith('/api/services/'):
             svc_id = path.split('/')[3]
             DB["services"] = [s for s in DB["services"] if s["_id"] != svc_id]
@@ -313,6 +379,12 @@ class AppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "settings": DB["settings"]})
         elif path == '/api/appointments':
             self.send_json({"success": True, "appointments": DB["appointments"]})
+        elif path == '/api/promotions':
+            self.send_json({"success": True, "promotions": DB.get("promotions", [])})
+        elif path == '/api/finance':
+            self.send_json({"success": True, "finance": DB.get("finance", {})})
+        elif path == '/api/reminders/settings':
+            self.send_json({"success": True, "reminders": DB.get("reminders", {})})
         elif path == '/api/appointments/my':
             email = (query.get('email', [''])[0] or '').lower().strip()
             phone = (query.get('phone', [''])[0] or '').strip()

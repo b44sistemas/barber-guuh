@@ -8,7 +8,6 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors());
-// Limite de 10MB para suportar upload de fotos de cortes em Base64
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
@@ -130,10 +129,42 @@ const DEFAULT_DB = {
       workDays: [0, 1, 2, 3, 4, 5, 6],
       blockedDates: [],
       workHours: [...ALL_HOURS],
-      customHours: [...ALL_HOURS]
+      customHours: [...ALL_HOURS],
+      daySchedules: {},
+      specialPeriods: []
     }
   ],
   appointments: [],
+  promotions: [],
+  transactions: [
+    {
+      _id: 'tx_seed_1',
+      type: 'expense',
+      title: 'Produtos (Pomadas, Lâminas e Shampoos)',
+      category: 'Estoque / Insumos',
+      amount: 180.0,
+      netAmount: 180.0,
+      paymentMethod: 'PIX',
+      feePercent: 0,
+      date: '2026-10-12',
+      status: 'paid'
+    }
+  ],
+  financeSettings: {
+    creditCardFee: 3.99,
+    debitCardFee: 1.49,
+    pixFee: 0.0
+  },
+  reminderSettings: {
+    enabled: true,
+    minutesBefore: 60,
+    clientPush: true,
+    clientEmail: true,
+    clientSms: true,
+    barberPush: true,
+    barberEmail: true,
+    barberSms: false
+  },
   settings: {
     name: 'Guuh Barbeiro',
     slogan: 'Estilo • Confiança • Atitude',
@@ -171,7 +202,6 @@ function saveDB(data) {
   }
 }
 
-// Healthcheck
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
@@ -181,14 +211,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Configuração Google OAuth
 app.get('/api/auth/google-config', (req, res) => {
   res.json({
     clientId: process.env.GOOGLE_CLIENT_ID || ''
   });
 });
 
-// Login / Cadastro com Google
 app.post('/api/auth/google', async (req, res) => {
   try {
     const { credential, email, name, picture, sub } = req.body;
@@ -240,7 +268,6 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-// Login Tradicional
 app.post('/api/auth/login', (req, res) => {
   const db = loadDB();
   const login = (req.body.email || req.body.login || '').trim().toLowerCase();
@@ -259,7 +286,6 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token: 'jwt-session-token', user: found });
 });
 
-// Cadastro Tradicional
 app.post('/api/auth/register', (req, res) => {
   const db = loadDB();
   const email = (req.body.email || '').trim().toLowerCase();
@@ -283,7 +309,6 @@ app.post('/api/auth/register', (req, res) => {
   res.status(201).json({ token: 'jwt-session-token', user: newUser });
 });
 
-// Atualizar Perfil
 app.put('/api/auth/profile', (req, res) => {
   const db = loadDB();
   const uid = req.body._id;
@@ -299,7 +324,7 @@ app.put('/api/auth/profile', (req, res) => {
   res.json({ user: req.body });
 });
 
-// Gerenciamento de Usuários e Acessos ao Painel Admin
+// Usuários & Acessos
 app.get('/api/users', (req, res) => {
   const db = loadDB();
   res.json({ users: db.users });
@@ -343,7 +368,7 @@ app.delete('/api/users/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// Serviços (GET, POST, PUT, DELETE)
+// Serviços
 app.get('/api/services', (req, res) => {
   const db = loadDB();
   res.json({ services: db.services });
@@ -384,7 +409,7 @@ app.delete('/api/services/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// Barbeiros (GET, POST, PUT, DELETE)
+// Barbeiros
 app.get('/api/barbers', (req, res) => {
   const db = loadDB();
   res.json({ barbers: db.barbers });
@@ -401,7 +426,9 @@ app.post('/api/barbers', (req, res) => {
     workDays: req.body.workDays || [0, 1, 2, 3, 4, 5, 6],
     blockedDates: req.body.blockedDates || [],
     workHours: req.body.workHours || [...ALL_HOURS],
-    customHours: req.body.customHours || [...ALL_HOURS]
+    customHours: req.body.customHours || [...ALL_HOURS],
+    daySchedules: req.body.daySchedules || {},
+    specialPeriods: req.body.specialPeriods || []
   };
   db.barbers.push(newB);
   saveDB(db);
@@ -425,7 +452,7 @@ app.delete('/api/barbers/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// Agendamentos (GET, POST, PUT status, DELETE)
+// Agendamentos (inclui Encaixes e Plataforma de Origem)
 app.get('/api/appointments', (req, res) => {
   const db = loadDB();
   res.json({ appointments: db.appointments });
@@ -451,7 +478,11 @@ app.post('/api/appointments', (req, res) => {
     price: Number(req.body.price || 40),
     date: req.body.date || new Date().toISOString().split('T')[0],
     time: req.body.time || '14:00',
-    status: 'confirmed'
+    status: req.body.status || 'confirmed',
+    isFitIn: Boolean(req.body.isFitIn),
+    platform: req.body.platform || 'App Web',
+    paymentMethod: req.body.paymentMethod || 'PIX',
+    reminderSentAt: req.body.reminderSentAt || new Date().toISOString()
   };
   db.appointments.push(newApp);
   saveDB(db);
@@ -463,6 +494,7 @@ app.put('/api/appointments/:id/status', (req, res) => {
   const item = db.appointments.find(a => a._id === req.params.id);
   if (item) {
     item.status = req.body.status || 'cancelled';
+    if (req.body.paymentMethod) item.paymentMethod = req.body.paymentMethod;
     saveDB(db);
   }
   res.json({ ok: true });
@@ -473,6 +505,99 @@ app.delete('/api/appointments/:id', (req, res) => {
   db.appointments = db.appointments.filter(a => a._id !== req.params.id);
   saveDB(db);
   res.json({ ok: true });
+});
+
+// Promoções, Notícias e Rastreamento de Recebimento/Leitura
+app.get('/api/promotions', (req, res) => {
+  const db = loadDB();
+  res.json({ promotions: db.promotions || [] });
+});
+
+app.post('/api/promotions', (req, res) => {
+  const db = loadDB();
+  if (!Array.isArray(db.promotions)) db.promotions = [];
+  db.promotions.unshift(req.body);
+  saveDB(db);
+  res.status(201).json({ promotion: req.body });
+});
+
+app.put('/api/promotions/:id/receipt', (req, res) => {
+  const db = loadDB();
+  if (!Array.isArray(db.promotions)) db.promotions = [];
+  const promo = db.promotions.find(p => p._id === req.params.id);
+  if (promo && Array.isArray(promo.recipients)) {
+    const rec = promo.recipients.find(
+      r => r.userId === req.body.userId || (r.email || '').toLowerCase() === (req.body.email || '').toLowerCase()
+    );
+    if (rec) {
+      if (req.body.receivedAt && !rec.receivedAt) rec.receivedAt = req.body.receivedAt;
+      if (req.body.readAt && !rec.readAt) rec.readAt = req.body.readAt;
+      saveDB(db);
+    }
+  }
+  res.json({ ok: true });
+});
+
+app.delete('/api/promotions/:id', (req, res) => {
+  const db = loadDB();
+  db.promotions = (db.promotions || []).filter(p => p._id !== req.params.id);
+  saveDB(db);
+  res.json({ ok: true });
+});
+
+// Gestão Financeira (Transações e Taxas de Cartão)
+app.get('/api/finance', (req, res) => {
+  const db = loadDB();
+  res.json({
+    transactions: db.transactions || [],
+    financeSettings: db.financeSettings || DEFAULT_DB.financeSettings
+  });
+});
+
+app.post('/api/finance/transactions', (req, res) => {
+  const db = loadDB();
+  if (!Array.isArray(db.transactions)) db.transactions = [];
+  db.transactions.unshift(req.body);
+  saveDB(db);
+  res.status(201).json({ transaction: req.body });
+});
+
+app.put('/api/finance/transactions/:id', (req, res) => {
+  const db = loadDB();
+  if (!Array.isArray(db.transactions)) db.transactions = [];
+  const tx = db.transactions.find(t => t._id === req.params.id);
+  if (tx) {
+    Object.assign(tx, req.body);
+    saveDB(db);
+  }
+  res.json({ ok: true });
+});
+
+app.delete('/api/finance/transactions/:id', (req, res) => {
+  const db = loadDB();
+  db.transactions = (db.transactions || []).filter(t => t._id !== req.params.id);
+  saveDB(db);
+  res.json({ ok: true });
+});
+
+app.put('/api/finance/settings', (req, res) => {
+  const db = loadDB();
+  db.financeSettings = { ...(db.financeSettings || {}), ...req.body };
+  saveDB(db);
+  res.json({ ok: true, financeSettings: db.financeSettings });
+});
+
+// Configurações de Lembretes de Horário
+app.get('/api/reminders/settings', (req, res) => {
+  const db = loadDB();
+  res.json({ reminderSettings: db.reminderSettings || DEFAULT_DB.reminderSettings });
+});
+
+app.put('/api/reminders/settings', (req, res) => {
+  const db = loadDB();
+  db.reminderSettings = { ...(db.reminderSettings || {}), ...req.body };
+  saveDB(db);
+  res.json({ ok: true, reminderSettings: db.reminderSettings });
 });
 
 // Configurações da Barbearia
