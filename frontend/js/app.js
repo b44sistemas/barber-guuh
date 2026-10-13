@@ -227,8 +227,7 @@ const DEFAULT_PACKAGES = [
     itemsDesc: '4x Corte Degradê / Social + Finalização com Pomada',
     totalSessions: 4,
     originalPrice: 160.0,
-    price: 135.0,
-    loyaltyPoints: 50
+    price: 135.0
   },
   {
     _id: 'pkg_2',
@@ -236,8 +235,7 @@ const DEFAULT_PACKAGES = [
     itemsDesc: '4x Corte + 4x Barba Completa + 2x Cerveja Artesanal do Bar',
     totalSessions: 4,
     originalPrice: 300.0,
-    price: 240.0,
-    loyaltyPoints: 100
+    price: 240.0
   }
 ];
 
@@ -359,33 +357,6 @@ const DEFAULT_REVIEWS = [
   }
 ];
 
-const DEFAULT_LOYALTY = {
-  pointsPerService: 10,
-  pointsPer10Reais: 1,
-  rewards: [
-    { _id: 'rew_1', title: 'Acabamento / Sobrancelha Grátis', pointsCost: 50, category: 'Serviço' },
-    { _id: 'rew_2', title: 'Cerveja Long Neck ou Energético Grátis', pointsCost: 40, category: 'Produto do Bar' },
-    { _id: 'rew_3', title: 'Barba Completa c/ Toalha Quente Grátis', pointsCost: 80, category: 'Serviço' },
-    { _id: 'rew_4', title: 'Corte Degradê / Social 100% Grátis', pointsCost: 100, category: 'Serviço' },
-    { _id: 'rew_5', title: 'Pomada Modeladora Matte 120g Grátis', pointsCost: 120, category: 'Cosmético' }
-  ],
-  balances: {
-    u_client1: 65
-  },
-  history: [
-    {
-      _id: 'lh_1',
-      userId: 'u_client1',
-      clientName: 'Felipe Rocha',
-      type: 'earn',
-      points: 65,
-      desc: 'Pontos acumulados (Pacote Mensal + Corte & Barba)',
-      date: '12/10/2026 11:00'
-    }
-  ],
-  redemptions: []
-};
-
 const state = {
   shop: {
     name: 'Guuh Barbeiro',
@@ -409,7 +380,6 @@ const state = {
   returnRules: JSON.parse(JSON.stringify(DEFAULT_RETURN_RULES)),
   reviews: JSON.parse(JSON.stringify(DEFAULT_REVIEWS)),
   satisfactionEnabled: true,
-  loyalty: JSON.parse(JSON.stringify(DEFAULT_LOYALTY)),
   currentUser: null,
   currentAuthMode: 'login',
   currentTab: 'home',
@@ -417,6 +387,8 @@ const state = {
   adminAgendaStatusFilter: 'all',
   financeFilter: 'all',
   clientBookingFilter: 'all',
+  homeCategoryFilter: 'Todos',
+  homeSearchQuery: '',
   selectedBarberDayTab: {}, // { barberId: 'all' | '0'..'6' }
   selectedServices: [],
   selectedService: null,
@@ -631,22 +603,19 @@ window.addEventListener('popstate', () => {
 function initSplashScreen() {
   const splash = document.getElementById('splash-screen');
   const hasSavedSession = Boolean(localStorage.getItem('guuh_client_user'));
-  if (!hasSavedSession) {
-    document.body.classList.add('auth-mode');
-  }
   if (!splash) {
     return;
   }
 
   // Se já estiver logado ou for /admin, remove a splash rapidamente sem nunca mostrar tela de login
-  const delay = hasSavedSession ? 250 : (isAdminRoute() ? 450 : 1800);
+  const delay = hasSavedSession ? 200 : (isAdminRoute() ? 400 : 1400);
 
   setTimeout(() => {
     splash.style.opacity = '0';
     splash.style.pointerEvents = 'none';
     setTimeout(() => {
       splash.remove();
-    }, 300);
+    }, 280);
   }, delay);
 }
 
@@ -667,7 +636,6 @@ async function loadAllData() {
   const lsReturnRules = localStorage.getItem('guuh_db_return_rules');
   const lsReviews = localStorage.getItem('guuh_db_reviews');
   const lsSatEnabled = localStorage.getItem('guuh_db_sat_enabled');
-  const lsLoyalty = localStorage.getItem('guuh_db_loyalty');
 
   state.users = lsUsers ? JSON.parse(lsUsers) : [...DEFAULT_USERS];
   state.services = lsServices ? JSON.parse(lsServices) : [...DEFAULT_SERVICES];
@@ -684,7 +652,6 @@ async function loadAllData() {
   state.returnRules = lsReturnRules ? JSON.parse(lsReturnRules) : JSON.parse(JSON.stringify(DEFAULT_RETURN_RULES));
   state.reviews = lsReviews ? JSON.parse(lsReviews) : JSON.parse(JSON.stringify(DEFAULT_REVIEWS));
   state.satisfactionEnabled = lsSatEnabled !== null ? JSON.parse(lsSatEnabled) : true;
-  state.loyalty = lsLoyalty ? JSON.parse(lsLoyalty) : JSON.parse(JSON.stringify(DEFAULT_LOYALTY));
 
   if (lsShop) {
     state.shop = { ...state.shop, ...JSON.parse(lsShop) };
@@ -797,7 +764,6 @@ async function loadAllData() {
       if (!lsReturnRules && Array.isArray(mData.returnRules) && mData.returnRules.length > 0) state.returnRules = mData.returnRules;
       if (!lsReviews && Array.isArray(mData.reviews) && mData.reviews.length > 0) state.reviews = mData.reviews;
       if (lsSatEnabled === null && typeof mData.satisfactionEnabled === 'boolean') state.satisfactionEnabled = mData.satisfactionEnabled;
-      if (!lsLoyalty && mData.loyalty && mData.loyalty.rewards) state.loyalty = mData.loyalty;
     }
   } catch (e) {}
 
@@ -805,23 +771,24 @@ async function loadAllData() {
 }
 
 function persistLocalData() {
-  localStorage.setItem('guuh_db_users', JSON.stringify(state.users));
-  localStorage.setItem('guuh_db_services', JSON.stringify(state.services));
-  localStorage.setItem('guuh_db_barbers', JSON.stringify(state.barbers));
-  localStorage.setItem('guuh_db_appointments', JSON.stringify(state.appointments));
-  localStorage.setItem('guuh_db_shop', JSON.stringify(state.shop));
-  localStorage.setItem('guuh_db_promotions', JSON.stringify(state.promotions));
-  localStorage.setItem('guuh_db_finance', JSON.stringify(state.finance));
-  localStorage.setItem('guuh_db_reminders', JSON.stringify(state.reminderSettings));
-  localStorage.setItem('guuh_db_packages', JSON.stringify(state.packages));
-  localStorage.setItem('guuh_db_client_packages', JSON.stringify(state.clientPackages));
-  localStorage.setItem('guuh_db_inventory', JSON.stringify(state.inventory));
-  localStorage.setItem('guuh_db_inventory_movs', JSON.stringify(state.inventoryMovements));
-  localStorage.setItem('guuh_db_waitlist', JSON.stringify(state.waitlist));
-  localStorage.setItem('guuh_db_return_rules', JSON.stringify(state.returnRules));
-  localStorage.setItem('guuh_db_reviews', JSON.stringify(state.reviews));
-  localStorage.setItem('guuh_db_sat_enabled', JSON.stringify(state.satisfactionEnabled));
-  localStorage.setItem('guuh_db_loyalty', JSON.stringify(state.loyalty));
+  try {
+    localStorage.setItem('guuh_db_users', JSON.stringify(state.users));
+    localStorage.setItem('guuh_db_services', JSON.stringify(state.services));
+    localStorage.setItem('guuh_db_barbers', JSON.stringify(state.barbers));
+    localStorage.setItem('guuh_db_appointments', JSON.stringify(state.appointments));
+    localStorage.setItem('guuh_db_shop', JSON.stringify(state.shop));
+    localStorage.setItem('guuh_db_promotions', JSON.stringify(state.promotions));
+    localStorage.setItem('guuh_db_finance', JSON.stringify(state.finance));
+    localStorage.setItem('guuh_db_reminders', JSON.stringify(state.reminderSettings));
+    localStorage.setItem('guuh_db_packages', JSON.stringify(state.packages));
+    localStorage.setItem('guuh_db_client_packages', JSON.stringify(state.clientPackages));
+    localStorage.setItem('guuh_db_inventory', JSON.stringify(state.inventory));
+    localStorage.setItem('guuh_db_inventory_movs', JSON.stringify(state.inventoryMovements));
+    localStorage.setItem('guuh_db_waitlist', JSON.stringify(state.waitlist));
+    localStorage.setItem('guuh_db_return_rules', JSON.stringify(state.returnRules));
+    localStorage.setItem('guuh_db_reviews', JSON.stringify(state.reviews));
+    localStorage.setItem('guuh_db_sat_enabled', JSON.stringify(state.satisfactionEnabled));
+  } catch (e) {}
 
   syncModulesToServer();
 }
@@ -839,8 +806,7 @@ async function syncModulesToServer() {
         waitlist: state.waitlist,
         returnRules: state.returnRules,
         reviews: state.reviews,
-        satisfactionEnabled: state.satisfactionEnabled,
-        loyalty: state.loyalty
+        satisfactionEnabled: state.satisfactionEnabled
       })
     });
   } catch (e) {}
@@ -857,6 +823,7 @@ function checkSessionAndStart() {
       localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
       markPromotionsReceivedForCurrentUser();
       updateGreeting();
+      renderHomeServicesList();
       renderHomeBarbers();
       renderAboutShopInfo();
       updateClientNotificationBadge();
@@ -890,6 +857,7 @@ function initApp() {
   const finDate = document.getElementById('fin-tx-date');
   if (finDate) finDate.value = formatDateISO(new Date());
   initCalendarDefaultDate();
+  renderHomeServicesList();
   renderHomeBarbers();
   renderAboutShopInfo();
   updateClientNotificationBadge();
@@ -1578,6 +1546,102 @@ function closeClientNotificationsModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+function selectHomeCategory(cat) {
+  state.homeCategoryFilter = cat || 'Todos';
+  state.homeSearchQuery = '';
+  const searchInp = document.getElementById('home-search-input');
+  if (searchInp) searchInp.value = '';
+
+  const btnMap = {
+    Todos: 'home-cat-todos',
+    Cabelo: 'home-cat-cabelo',
+    Barba: 'home-cat-barba',
+    Química: 'home-cat-quimica',
+    Pintura: 'home-cat-pintura'
+  };
+
+  Object.entries(btnMap).forEach(([key, btnId]) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const isSel = key === state.homeCategoryFilter;
+    btn.className = isSel
+      ? 'flex flex-col items-center space-y-1.5 py-2.5 px-1 rounded-2xl bg-[#1a1d26] border border-[#e5a769] text-white transition shadow-md'
+      : 'flex flex-col items-center space-y-1.5 py-2.5 px-1 rounded-2xl bg-[#16171d] border border-white/[0.06] hover:border-[#e5a769]/40 transition group';
+  });
+
+  renderHomeServicesList();
+}
+
+function filterHomeServicesByQuery(query) {
+  state.homeSearchQuery = (query || '').trim();
+  renderHomeServicesList();
+}
+
+function renderHomeServicesList() {
+  const container = document.getElementById('home-services-list');
+  const labelEl = document.getElementById('home-category-active-label');
+  if (!container) return;
+
+  const cat = state.homeCategoryFilter || 'Todos';
+  const q = (state.homeSearchQuery || '').toLowerCase().trim();
+
+  let list = [...state.services];
+  if (cat !== 'Todos') {
+    list = list.filter(s => (s.category || '').toLowerCase() === cat.toLowerCase());
+  }
+  if (q) {
+    list = list.filter(
+      s => (s.name || '').toLowerCase().includes(q) ||
+           (s.category || '').toLowerCase().includes(q) ||
+           (s.desc || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (labelEl) {
+    if (q) {
+      labelEl.textContent = `Busca: "${state.homeSearchQuery}" (${list.length})`;
+    } else if (cat === 'Todos') {
+      labelEl.textContent = `Todos os serviços (${list.length})`;
+    } else {
+      labelEl.textContent = `Categoria: ${cat} (${list.length})`;
+    }
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full lux-card p-5 text-center text-xs text-zinc-400 space-y-2">
+        <p class="font-bold text-white">Nenhum serviço encontrado nesta opção</p>
+        <button type="button" onclick="selectHomeCategory('Todos')" class="px-4 py-1.5 rounded-xl btn-lux-primary text-[11px] font-extrabold">
+          Mostrar Todos os Serviços
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = list.map(s => `
+    <div onclick="openBookingService('${s._id}')" class="lux-card-elevated p-3 flex items-center justify-between cursor-pointer hover:border-[#e5a769]/50 transition group">
+      <div class="flex items-center space-x-3 min-w-0 pr-2">
+        <img src="${s.image}" class="w-16 h-16 rounded-2xl object-cover border border-white/10 shrink-0 shadow-md" />
+        <div class="min-w-0">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#e5a769]/15 text-[#e5a769] font-bold">${s.category || 'Corte'}</span>
+            <span class="text-[10px] text-zinc-400"><i class="fa-regular fa-clock mr-1 text-[#e5a769]"></i>${s.minutes || 35} min</span>
+          </div>
+          <h5 class="text-xs md:text-sm font-extrabold text-white group-hover:text-[#e5a769] transition truncate mt-1">${s.name}</h5>
+          <p class="text-[10px] text-zinc-400 truncate mt-0.5">${s.desc || 'Atendimento especializado'}</p>
+        </div>
+      </div>
+      <div class="flex flex-col items-end justify-between shrink-0 pl-2">
+        <span class="text-xs md:text-sm font-black text-[#e5a769]">R$ ${Number(s.price).toFixed(2).replace('.', ',')}</span>
+        <span class="mt-2 px-3 py-1 rounded-xl bg-[#161822] border border-[#e5a769]/35 text-[10px] font-extrabold text-[#e5a769] group-hover:bg-[#e5a769] group-hover:text-[#0d0e12] transition">
+          Agendar
+        </span>
+      </div>
+    </div>
+  `).join('');
+}
+
 function renderHomeBarbers() {
   const container = document.getElementById('home-barbers-list');
   if (!container) return;
@@ -1640,6 +1704,52 @@ function renderAboutShopInfo() {
   }
 }
 
+// ========================================================
+// CONVERSOR E OTIMIZADOR AUTOMÁTICO DE FOTOS ANEXADAS
+// (Reduz dimensões e comprime para ~20KB-45KB para nunca pesar no App)
+// ========================================================
+function compressAndResizeImageFile(file, maxDim = 420, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error('Arquivo inválido'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Erro ao ler imagem'));
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Formato de imagem inválido'));
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxDim) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else if (h > maxDim) {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#121318';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+
+        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+        // Se ainda passar de ~90KB em base64, comprime mais um nível para garantir extrema leveza
+        if (dataUrl.length > 90000) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        }
+        resolve(dataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function previewProfileAvatarUrl(url) {
   const img = document.getElementById('profile-user-avatar');
   if (img && url && url.trim()) {
@@ -1647,57 +1757,41 @@ function previewProfileAvatarUrl(url) {
   }
 }
 
-function handleProfileAvatarUpload(fileInput) {
+async function handleProfileAvatarUpload(fileInput) {
   const file = fileInput?.files?.[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const img = new Image();
-    img.onload = function () {
-      const canvas = document.createElement('canvas');
-      const maxDim = 400;
-      let w = img.width;
-      let h = img.height;
-      if (w > h && w > maxDim) {
-        h = Math.round((h * maxDim) / w);
-        w = maxDim;
-      } else if (h > maxDim) {
-        w = Math.round((w * maxDim) / h);
-        h = maxDim;
+  try {
+    const dataUrl = await compressAndResizeImageFile(file, 360, 0.72);
+    const urlInp = document.getElementById('profile-input-avatar');
+    const prevImg = document.getElementById('profile-user-avatar');
+    const headerImg = document.getElementById('header-user-avatar');
+    if (urlInp) urlInp.value = dataUrl;
+    if (prevImg) prevImg.src = dataUrl;
+    if (headerImg) headerImg.src = dataUrl;
+
+    if (state.currentUser) {
+      state.currentUser.avatar = dataUrl;
+      localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
+      const idx = state.users.findIndex(u => u._id === state.currentUser._id || u.email === state.currentUser.email);
+      if (idx >= 0) {
+        state.users[idx].avatar = dataUrl;
+        persistLocalData();
       }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    }
 
-      const urlInp = document.getElementById('profile-input-avatar');
-      const prevImg = document.getElementById('profile-user-avatar');
-      const headerImg = document.getElementById('header-user-avatar');
-      if (urlInp) urlInp.value = dataUrl;
-      if (prevImg) prevImg.src = dataUrl;
-      if (headerImg) headerImg.src = dataUrl;
-
-      if (state.currentUser) {
-        state.currentUser.avatar = dataUrl;
-        localStorage.setItem('guuh_client_user', JSON.stringify(state.currentUser));
-        const idx = state.users.findIndex(u => u._id === state.currentUser._id || u.email === state.currentUser.email);
-        if (idx >= 0) {
-          state.users[idx].avatar = dataUrl;
-          persistLocalData();
-        }
-      }
-
-      showLuxAlert({
-        title: 'Foto de Perfil Carregada!',
-        message: 'Sua nova foto de perfil já foi aplicada. Clique em "Salvar Alterações" para confirmar seus dados.',
-        type: 'success'
-      });
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    await showLuxAlert({
+      title: 'Foto de Perfil Otimizada!',
+      message: 'Sua foto foi convertida automaticamente para tamanho leve e aplicada ao seu perfil.',
+      type: 'success'
+    });
+  } catch (err) {
+    await showLuxAlert({
+      title: 'Erro na Imagem',
+      message: 'Não foi possível processar esta foto. Tente outra imagem.',
+      type: 'error'
+    });
+  }
 }
 
 function renderUserProfile() {
@@ -1932,12 +2026,12 @@ function renderBookingServicesCarousel() {
   container.innerHTML = state.services.map(s => {
     const isSelected = state.selectedServices.some(item => item._id === s._id);
     return `
-      <div onclick="toggleServiceInBooking('${s._id}')" class="min-w-[146px] max-w-[146px] p-2 rounded-2xl border transition-all cursor-pointer shrink-0 select-none relative ${
+      <div onclick="toggleServiceInBooking('${s._id}')" class="w-full p-2.5 rounded-2xl border transition-all cursor-pointer select-none relative ${
         isSelected
           ? 'bg-[#1a1d26] border-[#e5a769] shadow-[0_0_15px_rgba(229,167,105,0.2)]'
           : 'bg-[#13151b] border-white/[0.07] hover:border-white/[0.2]'
       }">
-        <div class="relative h-20 w-full rounded-xl overflow-hidden mb-1.5">
+        <div class="relative h-24 w-full rounded-xl overflow-hidden mb-1.5">
           <img src="${s.image}" class="w-full h-full object-cover" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent"></div>
           <span class="absolute bottom-1.5 left-2 text-[10px] font-black text-white">R$ ${Number(s.price).toFixed(2).replace('.', ',')}</span>
@@ -2615,19 +2709,26 @@ function switchAdminSubTab(sub) {
 }
 
 function renderAdminDashboard() {
-  renderAdminReminderSettingsForm();
-  renderAdminWaitlist();
-  renderAdminAgenda();
-  renderAdminServicesList();
-  renderAdminPackages();
-  renderAdminInventory();
-  renderAdminBarbersList();
-  renderAdminFinance();
-  renderAdminCrm();
-  renderAdminPromotions();
-  renderAdminReports();
-  renderAdminUsersList();
-  renderAdminShopSettingsForm();
+  const fns = [
+    renderAdminReminderSettingsForm,
+    renderAdminWaitlist,
+    renderAdminAgenda,
+    renderAdminServicesList,
+    renderAdminPackages,
+    renderAdminInventory,
+    renderAdminBarbersList,
+    renderAdminFinance,
+    renderAdminCrm,
+    renderAdminPromotions,
+    renderAdminReports,
+    renderAdminUsersList,
+    renderAdminShopSettingsForm
+  ];
+  fns.forEach(fn => {
+    try {
+      fn();
+    } catch (e) {}
+  });
 }
 
 function setAdminAgendaStatusFilter(status) {
@@ -3000,13 +3101,12 @@ async function adminUpdateAppStatus(appId, status) {
 
   item.status = status;
   let notifiedWaitlist = 0;
-  let earnedPoints = 0;
 
   if (status === 'cancelled') {
     notifiedWaitlist = notifyWaitlistForFreedSlot(item.date, item.time, item.barberId, item.barberName);
   }
 
-  // Se concluído, integra automaticamente com a Gestão Financeira (Caixa) + Programa de Fidelidade + Pesquisa de Satisfação
+  // Se concluído, integra automaticamente com a Gestão Financeira (Caixa) + Pesquisa de Satisfação
   if (status === 'completed') {
     const alreadyInFinance = state.finance.transactions.some(t => t.appointmentId === item._id);
     if (!alreadyInFinance) {
@@ -3085,7 +3185,7 @@ async function adminDeleteAppointment(appId) {
   });
 }
 
-// --- 5.2 ADMIN: GERENCIAR SERVIÇOS (UPLOAD DE FOTO + URL) ---
+// --- 5.2 ADMIN: GERENCIAR SERVIÇOS (UPLOAD DE FOTO OTIMIZADA + URL) ---
 function previewServiceImageUrl(url) {
   const img = document.getElementById('admin-svc-preview-img');
   if (img && url && url.trim()) {
@@ -3093,45 +3193,29 @@ function previewServiceImageUrl(url) {
   }
 }
 
-function handleServiceImageUpload(fileInput) {
+async function handleServiceImageUpload(fileInput) {
   const file = fileInput?.files?.[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const img = new Image();
-    img.onload = function () {
-      const canvas = document.createElement('canvas');
-      const maxDim = 650;
-      let w = img.width;
-      let h = img.height;
-      if (w > h && w > maxDim) {
-        h = Math.round((h * maxDim) / w);
-        w = maxDim;
-      } else if (h > maxDim) {
-        w = Math.round((w * maxDim) / h);
-        h = maxDim;
-      }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  try {
+    const dataUrl = await compressAndResizeImageFile(file, 480, 0.72);
+    const urlInp = document.getElementById('admin-svc-image');
+    const prevImg = document.getElementById('admin-svc-preview-img');
+    if (urlInp) urlInp.value = dataUrl;
+    if (prevImg) prevImg.src = dataUrl;
 
-      const urlInp = document.getElementById('admin-svc-image');
-      const prevImg = document.getElementById('admin-svc-preview-img');
-      if (urlInp) urlInp.value = dataUrl;
-      if (prevImg) prevImg.src = dataUrl;
-
-      showLuxAlert({
-        title: 'Foto Anexada!',
-        message: 'A foto do corte foi carregada e otimizada com sucesso. Clique em "Salvar no Catálogo" para concluir.',
-        type: 'success'
-      });
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    await showLuxAlert({
+      title: 'Foto Anexada e Convertida!',
+      message: 'A foto do corte foi redimensionada e otimizada para não pesar no aplicativo. Clique em "Salvar no Catálogo" para concluir.',
+      type: 'success'
+    });
+  } catch (err) {
+    await showLuxAlert({
+      title: 'Erro na Imagem',
+      message: 'Não foi possível processar esta foto.',
+      type: 'error'
+    });
+  }
 }
 
 function renderAdminServicesList() {
@@ -3262,6 +3346,7 @@ async function saveAdminService() {
   persistLocalData();
   resetAdminServiceForm();
   renderAdminServicesList();
+  renderHomeServicesList();
 
   await showLuxAlert({
     title: id ? 'Serviço Atualizado!' : 'Serviço Adicionado!',
@@ -3298,6 +3383,7 @@ async function deleteAdminService(svcId) {
     await fetch(`${API_BASE}/services/${svcId}`, { method: 'DELETE' });
   } catch (e) {}
   renderAdminServicesList();
+  renderHomeServicesList();
 
   await showLuxAlert({
     title: 'Serviço Removido',
@@ -3307,9 +3393,69 @@ async function deleteAdminService(svcId) {
 }
 
 // ========================================================
-// 5.3 ADMIN: FLEXIBILIZAÇÃO DA AGENDA DOS PROFISSIONAIS
-// (Jornada por Dia da Semana + Jornada por Período + Horários até 23h)
+// 5.3 ADMIN: PROFISSIONAIS (ANEXAR FOTO COM CONVERSÃO + JORNADA)
 // ========================================================
+function previewBarberAvatarUrl(url) {
+  const img = document.getElementById('admin-barber-preview-img');
+  if (img && url && url.trim()) {
+    img.src = url.trim();
+  }
+}
+
+async function handleBarberAvatarUpload(fileInput) {
+  const file = fileInput?.files?.[0];
+  if (!file) return;
+
+  try {
+    const dataUrl = await compressAndResizeImageFile(file, 380, 0.72);
+    const urlInp = document.getElementById('admin-barber-avatar');
+    const prevImg = document.getElementById('admin-barber-preview-img');
+    if (urlInp) urlInp.value = dataUrl;
+    if (prevImg) prevImg.src = dataUrl;
+
+    await showLuxAlert({
+      title: 'Foto do Profissional Pronta!',
+      message: 'A foto do profissional foi redimensionada e convertida para tamanho leve. Clique em "Salvar" para confirmar.',
+      type: 'success'
+    });
+  } catch (err) {
+    await showLuxAlert({
+      title: 'Erro na Foto',
+      message: 'Não foi possível processar esta foto.',
+      type: 'error'
+    });
+  }
+}
+
+async function handleDirectBarberPhotoChange(barberId, fileInput) {
+  const file = fileInput?.files?.[0];
+  if (!file) return;
+  const b = state.barbers.find(item => item._id === barberId);
+  if (!b) return;
+
+  try {
+    const dataUrl = await compressAndResizeImageFile(file, 380, 0.72);
+    b.avatar = dataUrl;
+    persistLocalData();
+    await syncBarberToServer(b);
+    renderAdminBarbersList();
+    renderHomeBarbers();
+    renderBookingBarbers();
+
+    await showLuxAlert({
+      title: 'Foto do Profissional Atualizada!',
+      message: `A nova foto de ${b.name} foi convertida para tamanho leve e já está visível no aplicativo.`,
+      type: 'success'
+    });
+  } catch (err) {
+    await showLuxAlert({
+      title: 'Erro na Foto',
+      message: 'Não foi possível carregar esta imagem.',
+      type: 'error'
+    });
+  }
+}
+
 function setBarberDayScheduleTab(barberId, dayKey) {
   state.selectedBarberDayTab[barberId] = dayKey;
   renderAdminBarbersList();
@@ -3407,23 +3553,29 @@ function renderAdminBarbersList() {
 
     return `
       <div class="admin-section-card p-4 md:p-6 space-y-5 text-xs">
-        <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
           <div class="flex items-center space-x-3.5">
-            <img src="${b.avatar || '/barbearia_logo.jpg'}" class="w-13 h-13 rounded-2xl object-cover border-2 border-[#e5a769]/50 shadow-md" style="width:52px;height:52px;" />
+            <img src="${b.avatar || '/barbeiro_ricardo.jpg'}" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#e5a769]/50 shadow-md shrink-0" />
             <div>
-              <div class="flex items-center space-x-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <h5 class="font-black text-white text-sm md:text-base">${b.name}</h5>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Controle Automático Ativo</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">Agenda Ativa</span>
               </div>
               <span class="text-[11px] text-zinc-400 block mt-0.5">${b.role || 'Barbeiro Master'} • ${b.exp || ''}</span>
             </div>
           </div>
-          <div class="flex items-center space-x-1.5">
-            <button onclick="editAdminBarber('${b._id}')" class="w-8 h-8 rounded-xl bg-[#1c1f28] border border-white/[0.08] text-zinc-300 hover:text-[#e5a769] flex items-center justify-center transition">
+          <div class="flex items-center space-x-2">
+            <!-- Botão direto para Anexar/Trocar Foto do Profissional -->
+            <label class="px-3 py-1.5 rounded-xl bg-[#e5a769]/15 hover:bg-[#e5a769]/25 border border-[#e5a769]/40 text-[#e5a769] text-[10px] font-extrabold cursor-pointer flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-camera"></i>
+              <span>Trocar Foto</span>
+              <input type="file" accept="image/*" onchange="handleDirectBarberPhotoChange('${b._id}', this)" class="hidden" />
+            </label>
+            <button type="button" onclick="editAdminBarber('${b._id}')" class="w-8 h-8 rounded-xl bg-[#1c1f28] border border-white/[0.08] text-zinc-300 hover:text-[#e5a769] flex items-center justify-center transition">
               <i class="fa-solid fa-pen text-[10px]"></i>
             </button>
             ${state.barbers.length > 1 ? `
-              <button onclick="deleteAdminBarber('${b._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 flex items-center justify-center transition">
+              <button type="button" onclick="deleteAdminBarber('${b._id}')" class="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 flex items-center justify-center transition">
                 <i class="fa-regular fa-trash-can text-[10px]"></i>
               </button>
             ` : ''}
@@ -3640,8 +3792,12 @@ function editAdminBarber(barberId) {
   document.getElementById('admin-barber-id').value = b._id;
   document.getElementById('admin-barber-name').value = b.name;
   document.getElementById('admin-barber-exp').value = b.exp || '';
+  const avatarInp = document.getElementById('admin-barber-avatar');
+  const prevImg = document.getElementById('admin-barber-preview-img');
+  if (avatarInp) avatarInp.value = b.avatar || '';
+  if (prevImg) prevImg.src = b.avatar || '/barbeiro_ricardo.jpg';
   const title = document.getElementById('admin-barber-form-title');
-  if (title) title.textContent = `Editando: ${b.name}`;
+  if (title) title.textContent = `Editando Profissional: ${b.name}`;
   const cancelBtn = document.getElementById('btn-cancel-barber-edit');
   if (cancelBtn) cancelBtn.classList.remove('hidden');
 }
@@ -3650,8 +3806,14 @@ function resetAdminBarberForm() {
   document.getElementById('admin-barber-id').value = '';
   document.getElementById('admin-barber-name').value = '';
   document.getElementById('admin-barber-exp').value = '';
+  const avatarInp = document.getElementById('admin-barber-avatar');
+  const fileInp = document.getElementById('admin-barber-file');
+  const prevImg = document.getElementById('admin-barber-preview-img');
+  if (avatarInp) avatarInp.value = '';
+  if (fileInp) fileInp.value = '';
+  if (prevImg) prevImg.src = '/barbeiro_ricardo.jpg';
   const title = document.getElementById('admin-barber-form-title');
-  if (title) title.textContent = 'Flexibilização da Agenda dos Profissionais';
+  if (title) title.textContent = 'Cadastrar / Editar Profissional';
   const cancelBtn = document.getElementById('btn-cancel-barber-edit');
   if (cancelBtn) cancelBtn.classList.add('hidden');
 }
@@ -3660,6 +3822,7 @@ async function saveAdminBarberBasic() {
   const id = document.getElementById('admin-barber-id').value.trim();
   const name = document.getElementById('admin-barber-name').value.trim();
   const exp = document.getElementById('admin-barber-exp').value.trim() || 'Cortes & Barba';
+  const avatarVal = document.getElementById('admin-barber-avatar')?.value.trim() || '';
 
   if (!name) {
     await showLuxAlert({
@@ -3675,6 +3838,7 @@ async function saveAdminBarberBasic() {
     if (b) {
       b.name = name;
       b.exp = exp;
+      if (avatarVal) b.avatar = avatarVal;
       await syncBarberToServer(b);
     }
   } else {
@@ -3683,7 +3847,7 @@ async function saveAdminBarberBasic() {
       name,
       role: 'Barbeiro Master',
       exp,
-      avatar: '/barbearia_logo.jpg',
+      avatar: avatarVal || '/barbeiro_ricardo.jpg',
       workDays: [0, 1, 2, 3, 4, 5, 6],
       blockedDates: [],
       workHours: [...ALL_POSSIBLE_HOURS],
@@ -3705,10 +3869,11 @@ async function saveAdminBarberBasic() {
   resetAdminBarberForm();
   renderAdminBarbersList();
   renderHomeBarbers();
+  renderBookingBarbers();
 
   await showLuxAlert({
     title: 'Profissional Salvo!',
-    message: `Os dados e a jornada de ${name} foram atualizados com sucesso.`,
+    message: `Os dados, a foto e a jornada de ${name} foram atualizados com sucesso.`,
     type: 'success'
   });
 }
@@ -4760,12 +4925,6 @@ async function switchTab(tab) {
     }
   } catch (e) {}
 
-  if (tab === 'login') {
-    document.body.classList.add('auth-mode');
-  } else {
-    document.body.classList.remove('auth-mode');
-  }
-
   const views = ['login', 'home', 'booking', 'my-bookings', 'loyalty', 'about', 'profile', 'admin'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
@@ -4811,6 +4970,7 @@ async function switchTab(tab) {
   if (tab === 'home') {
     updateGreeting();
     renderHomeBarbers();
+    renderHomeServicesList();
   }
 }
 
@@ -5347,7 +5507,7 @@ async function saveInventoryProduct() {
   const quantity = parseInt(document.getElementById('inv-qty')?.value || '0', 10);
   const minQty = parseInt(document.getElementById('inv-min-qty')?.value || '5', 10);
   const costPrice = parseFloat(document.getElementById('inv-cost')?.value || '0');
-  const salePrice = parseFloat(document.getElementById('inv-price')?.value || '0');
+  const salePrice = parseFloat((document.getElementById('inv-sale') || document.getElementById('inv-price'))?.value || '0');
   const expiryDate = document.getElementById('inv-expiry')?.value || '';
 
   if (!name || isNaN(costPrice)) {
@@ -5410,12 +5570,13 @@ function editInventoryProduct(prodId) {
   document.getElementById('inv-qty').value = p.quantity;
   document.getElementById('inv-min-qty').value = p.minQty;
   document.getElementById('inv-cost').value = p.costPrice;
-  document.getElementById('inv-price').value = p.salePrice;
+  const saleEl = document.getElementById('inv-sale') || document.getElementById('inv-price');
+  if (saleEl) saleEl.value = p.salePrice;
   document.getElementById('inv-expiry').value = p.expiryDate || '';
 }
 
 function resetInventoryForm() {
-  const ids = ['inv-prod-id', 'inv-name', 'inv-qty', 'inv-min-qty', 'inv-cost', 'inv-price', 'inv-expiry'];
+  const ids = ['inv-prod-id', 'inv-name', 'inv-qty', 'inv-min-qty', 'inv-cost', 'inv-sale', 'inv-price', 'inv-expiry'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
